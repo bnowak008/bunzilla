@@ -1,5 +1,3 @@
-# 🦖 Bunzilla
-
 <div align="center">
 
 ![Bunzilla Logo](https://raw.githubusercontent.com/bnowak008/bunzilla/refs/heads/main/assets/bunzilla_logo.jpg)
