@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Bunzilla Logo](https://raw.githubusercontent.com/bnowak008/bunzilla/main/public/bunzilla_logo.jpg)
+![Bunzilla Logo](https://raw.githubusercontent.com/bnowak008/bunzilla/main/assets/bunzilla_logo.jpg)
 
 [![npm version](https://img.shields.io/npm/v/bunzilla.svg?style=for-the-badge&color=8C4660)](https://www.npmjs.com/package/bunzilla)
 [![License: MIT](https://img.shields.io/badge/License-MIT-F2CA52.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
