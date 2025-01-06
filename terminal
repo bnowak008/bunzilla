@@ -1,0 +1,37 @@
+# Clone and enter the project directory
+git clone https://github.com/your-username/bunzilla.git
+cd bunzilla
+
+# Install dependencies
+bun install
+
+# Build the project
+bun run build
+
+# Make the CLI executable
+chmod +x dist/index.js
+
+# Try creating a new project (from any directory)
+./dist/index.js create my-project --type webapp
+
+# Or try other commands
+./dist/index.js list
+./dist/index.js config 
+
+# From the bunzilla directory
+bun run src/index.ts create my-project --type webapp
+
+# Try other project types
+bun run src/index.ts create my-api --type api
+bun run src/index.ts create my-lib --type utility
+bun run src/index.ts create my-mono --type monorepo 
+
+# In the bunzilla project directory
+bun install
+bun run build
+bun link
+
+# Now you can run bunzilla from anywhere
+bunzilla create my-project --type webapp
+bunzilla create my-api --type api
+bunzilla list 

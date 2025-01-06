@@ -1,8 +1,13 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
+import chalk from 'chalk';
 import { version } from '../package.json';
+import { getBanner } from './utils/banner';
 
 const program = new Command();
+
+// Always show banner
+console.log(chalk.yellow(getBanner()));
 
 program
   .name('bunzilla')
@@ -13,15 +18,14 @@ program
 program
   .command('create')
   .description('Create a new Bun project')
-  .argument('[type]', 'Project type (utility, monorepo, webapp, api, cli)')
-  .option('--name <name>', 'Project name')
-  .option('--defaults', 'Skip prompts with default values')
-  .option('--framework <framework>', 'Specify framework for APIs')
+  .argument('[name]', 'Project name')
+  .option('--type <type>', 'Project type (utility, monorepo, webapp, api, cli)')
   .option('--frontend <frontend>', 'Specify frontend stack')
-  .option('--template <template>', 'Use a custom template')
-  .action(async (type, options) => {
+  .option('--framework <framework>', 'Specify framework for APIs')
+  .option('--defaults', 'Skip prompts with default values')
+  .action(async (name, options) => {
     const { create } = await import('./commands/create');
-    await create({ name: options.name, type, defaults: options.defaults });
+    await create({ ...options, name });
   });
 
 program
