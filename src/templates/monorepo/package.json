@@ -1,0 +1,25 @@
+{
+  "name": "${projectName}",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd apps/web dev",
+    "build": "bun run build:packages && bun run build:apps",
+    "build:packages": "bun run --cwd packages/shared build",
+    "build:apps": "bun run --cwd apps/web build && bun run --cwd apps/api build",
+    "test": "bun test",
+    "lint": "biome check .",
+    "format": "biome format . --write",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@biomejs/biome": "1.4.1",
+    "bun-types": "latest",
+    "vitest": "^1.1.0"
+  }
+}
