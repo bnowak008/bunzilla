@@ -1,6 +1,6 @@
 {
   "name": "bunzilla",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A CLI tool for bootstrapping Bun projects with modern development practices",
   "type": "module",
   "main": "dist/index.js",
