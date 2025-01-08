@@ -17,7 +17,8 @@
     "test": "bun test",
     "lint": "biome check .",
     "format": "biome format . --write",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "validate-templates": "bun run src/scripts/validate-templates.ts"
   },
   "keywords": [
     "bun",
