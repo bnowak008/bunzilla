@@ -1,39 +1,55 @@
 import { createInterface } from 'node:readline';
 import chalk from 'chalk';
+import { Command } from 'commander';
 
-interface Choice<T = string> {
+type Choice<T = string> = {
   title: string;
   value: T;
 }
 
-interface StepConfig<T = any> {
+type BaseStep<T = any> = {
   name: string;
   message: string;
-  type: 'text' | 'select' | 'confirm';
-  choices?: Choice[];
+  description?: string;
   validate?: (input: string) => boolean | string;
   transform?: (input: string) => T;
   initial?: T;
 }
 
-interface CLIConfig {
+type TextStep = BaseStep & {
+  type: 'text';
+}
+
+type SelectStep = BaseStep & {
+  type: 'select';
+  choices: Choice[];
+}
+
+type ConfirmStep = BaseStep & {
+  type: 'confirm';
+}
+
+type StepConfig = TextStep | SelectStep | ConfirmStep;
+
+type CommandConfig = {
+  name: string;
+  description: string;
   banner?: {
     render: () => string;
-    responsive?: boolean;
     text?: string;
+    responsive?: boolean;
   };
   steps: StepConfig[];
 }
 
+type CLIConfig = {
+  name: string;
+  version: string;
+  commands: Record<string, CommandConfig>;
+}
+
 // Track the current cursor position
 let currentLine = 0;
-
-// Utility function for centering text
-function centerText(text: string, width: number): string {
-  const visibleLength = text.replace(/\u001b\[\d+m/g, '').length;
-  const padding = Math.floor((width - visibleLength) / 2);
-  return ' '.repeat(Math.max(0, padding)) + text;
-}
 
 // Input utilities
 async function text(message: string, initial?: string, validate?: (input: string) => boolean | string): Promise<string> {
@@ -141,8 +157,23 @@ async function confirm(message: string, initial = false): Promise<boolean> {
   return answer.toLowerCase().startsWith('y');
 }
 
-// Main CLI function
-async function createCLI(config: CLIConfig) {
+async function processStep(step: StepConfig): Promise<any> {
+  switch (step.type) {
+    case 'text':
+      return text(step.message, step.initial as string, step.validate);
+    case 'select':
+      if (!step.choices) throw new Error('Choices required for select step');
+      return select(step.message, step.choices);
+    case 'confirm':
+      return confirm(step.message, step.initial as boolean);
+    default: {
+      const _exhaustiveCheck: never = step;
+      throw new Error(`Unknown step type: ${(_exhaustiveCheck as any).type}`);
+    }
+  }
+}
+
+async function promptSteps(config: CommandConfig) {
   const answers: Record<string, any> = {};
 
   // Clear screen and reset cursor position
@@ -150,14 +181,12 @@ async function createCLI(config: CLIConfig) {
   currentLine = 0;
 
   if (config.banner) {
-    // Display banner at the top
     console.log(config.banner.render());
     if (config.banner.text) {
       console.log(chalk.dim(config.banner.text));
     }
-    console.log(); // Add a blank line after banner
+    console.log();
 
-    // Update current line position based on banner height
     const bannerHeight = config.banner.render().split('\n').length;
     currentLine = bannerHeight + (config.banner.text ? 2 : 1);
   }
@@ -168,24 +197,64 @@ async function createCLI(config: CLIConfig) {
       answers[step.name] = answer;
     }
   } finally {
-    // Ensure cursor is visible
     process.stdout.write('\x1B[?25h');
   }
 
   return answers;
 }
 
-async function processStep(step: StepConfig): Promise<any> {
-  switch (step.type) {
-    case 'text':
-      return text(step.message, step.initial as string, step.validate);
-    case 'select':
-      return select(step.message, step.choices || []);
-    case 'confirm':
-      return confirm(step.message, step.initial as boolean);
-    default:
-      throw new Error(`Unknown step type: ${step.type}`);
-  }
+function createCommand(program: Command, name: string, config: CommandConfig) {
+  const command = program.command(name);
+  command.description(config.description);
+
+  config.steps.forEach(step => {
+    if (step.type === 'text') {
+      command.argument(`[${step.name}]`, step.description || step.message);
+    } else if (step.type === 'select') {
+      command.option(
+        `--${step.name} <${step.name}>`,
+        step.description || step.message,
+        step.choices.map(c => c.value)
+      );
+    }
+  });
+
+  command.action(async (name, options) => {
+    const answers = await promptSteps({
+      ...config,
+      steps: config.steps.map(step => ({
+        ...step,
+        initial: step.name === 'name' ? name : options[step.name]
+      }))
+    });
+
+    const handler = await import(`../commands/${name}`);
+    await handler[name]({ ...options, ...answers });
+  });
+
+  return command;
 }
 
-export { createCLI, text, select, confirm, type Choice, type StepConfig, type CLIConfig };
+function createCLI(config: CLIConfig) {
+  const program = new Command();
+
+  program
+    .name(config.name)
+    .version(config.version);
+
+  Object.entries(config.commands).forEach(([name, cmdConfig]) => {
+    createCommand(program, name, cmdConfig);
+  });
+
+  return {
+    run: () => program.parseAsync()
+  };
+}
+
+export {
+  createCLI,
+  type CLIConfig,
+  type CommandConfig,
+  type StepConfig,
+  type Choice
+};
