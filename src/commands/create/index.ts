@@ -1,75 +1,47 @@
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import chalk from 'chalk';
+import kleur from 'kleur';
 import ora from 'ora';
 import { TemplateManager } from '../../utils/template-manager';
 import { CreateOptions, ProjectType } from './types';
-import inquirer from 'inquirer';
-
-export * from './types';
 
 export async function create(options: CreateOptions): Promise<void> {
-  const spinner = ora('Creating project...').start();
-  spinner.stop(); // Stop spinner before prompts
+  const spinner = ora({ color: 'cyan' });
+  const { name, type } = options;
 
   try {
-    // Always prompt for project name, using passed name as default
-    const { name } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'name',
-        message: 'What is your project named?',
-        default: options.name,
-        validate: (input: string) => {
-          if (/^[a-z0-9-]+$/.test(input)) return true;
-          return 'Project name may only include lowercase letters, numbers, and hyphens';
-        },
-      },
-    ]);
-
-    // Update options with prompted name
-    options.name = name;
-
-    // Prompt for project type if not provided
-    if (!options.type) {
-      const { type } = await inquirer.prompt([{
-        type: 'list',
-        name: 'type',
-        message: 'What type of project would you like to create?',
-        choices: ['utility', 'webapp', 'api', 'monorepo', 'cli'] as ProjectType[],
-      }]);
-      options.type = type;
+    if (!name || !type) {
+      throw new Error('Missing required options');
     }
 
     spinner.start('Creating project...');
-
     const projectDir = join(process.cwd(), name);
 
-    // Check if directory already exists
     if (existsSync(projectDir)) {
-      spinner.fail(chalk.red(`Directory ${name} already exists`));
+      spinner.fail(kleur.red(`Directory ${name} already exists`));
       throw new Error(`Directory ${name} already exists`);
     }
 
     const templateManager = new TemplateManager();
-    const templatePath = templateManager.getTemplate(options.type as ProjectType);
+    const templatePath = templateManager.getTemplate(type as ProjectType);
 
     if (!existsSync(templatePath)) {
-      spinner.fail(chalk.red(`No template found for type: ${options.type}`));
-      throw new Error(`No template found for type: ${options.type}`);
+      spinner.fail(kleur.red(`No template found for type: ${type}`));
+      throw new Error(`No template found for type: ${type}`);
     }
 
-    // Process template
     await templateManager.processTemplate(templatePath, projectDir);
-
-    spinner.succeed(chalk.green(`Project ${name} created successfully`));
+    spinner.succeed(kleur.green(`Project ${name} created successfully`));
     
     console.log('\nNext steps:');
-    console.log(chalk.cyan(`  cd ${name}`));
-    console.log(chalk.cyan('  bun install'));
-    console.log(chalk.cyan('  bun run dev'));
+    console.log(kleur.cyan(`  cd ${name}`));
+    console.log(kleur.cyan('  bun install'));
+    console.log(kleur.cyan('  bun run dev'));
   } catch (error) {
-    spinner.fail(chalk.red('Failed to create project'));
-    throw error;
+    spinner.fail(kleur.red('Failed to create project'));
+    if (error instanceof Error) {
+      console.error(kleur.red(error.message));
+    }
+    process.exit(1);
   }
 } 

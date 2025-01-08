@@ -1,5 +1,35 @@
 export type ProjectType = 'utility' | 'webapp' | 'api' | 'monorepo' | 'cli';
 
+export const projectTypes = [
+  { title: 'Utility Package', value: 'utility' },
+  { title: 'Web Application', value: 'webapp' },
+  { title: 'API Service', value: 'api' },
+  { title: 'Monorepo', value: 'monorepo' },
+  { title: 'CLI Tool', value: 'cli' }
+] as Array<{ title: string; value: ProjectType }>;
+
+export interface CLISteps {
+  create: Array<{
+    name: string;
+    type: 'text' | 'select' | 'confirm';
+    message: string;
+    validate?: (input: string) => boolean | string;
+    choices?: ReadonlyArray<{ title: string; value: string }>;
+  }>;
+  evolve: Array<{
+    name: string;
+    type: 'text' | 'select' | 'confirm';
+    message: string;
+    choices?: Array<{ title: string; value: string }>;
+  }>;
+  config: Array<{
+    name: string;
+    type: 'text' | 'select' | 'confirm';
+    message: string;
+    choices?: Array<{ title: string; value: string }>;
+  }>;
+}
+
 export type WebAppOptions = {
   frontend: 'react' | 'solid' | 'svelte';
 };

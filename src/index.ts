@@ -1,13 +1,62 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
-import chalk from 'chalk';
 import { version } from '../package.json';
+import { createCLI } from './utils/cli';
+import { bunzilla } from './utils/banner';
+import { projectTypes, type CLISteps } from './types';
 import { getBanner } from './utils/banner';
 
 const program = new Command();
 
-// Always show banner
-console.log(chalk.yellow(getBanner()));
+const cliConfig = {
+  banner: {
+    render: getBanner,
+    text: 'The Ultimate Bun Project Generator',
+    responsive: true
+  },
+  steps: {
+    create: [
+      {
+        name: 'name',
+        type: 'text' as const,
+        message: 'Project name: ',
+        validate: (input: string) => {
+          if (/^[a-z0-9-]+$/.test(input)) return true;
+          return 'Project name may only include lowercase letters, numbers, and hyphens';
+        }
+      },
+      {
+        name: 'type',
+        type: 'select' as const,
+        message: 'Select project type:',
+        choices: projectTypes
+      }
+    ],
+    evolve: [
+      {
+        name: 'feature',
+        type: 'select' as const,
+        message: 'Select feature to add:',
+        choices: [
+          { title: 'Add CLI Interface', value: 'cli' },
+          { title: 'Add Frontend', value: 'frontend' },
+          { title: 'Add API', value: 'api' }
+        ]
+      }
+    ],
+    config: [
+      {
+        name: 'action',
+        type: 'select' as const,
+        message: 'Select configuration action:',
+        choices: [
+          { title: 'View Current Config', value: 'view' },
+          { title: 'Edit Config', value: 'edit' }
+        ]
+      }
+    ]
+  } satisfies CLISteps
+};
 
 program
   .name('bunzilla')
@@ -25,15 +74,14 @@ program
   .option('--defaults', 'Skip prompts with default values')
   .action(async (name, options) => {
     const { create } = await import('./commands/create');
-    await create({ ...options, name });
-  });
-
-program
-  .command('list')
-  .description('List all available templates')
-  .action(async () => {
-    const { list } = await import('./commands/list');
-    await list();
+    const cli = await createCLI({
+      ...cliConfig,
+      steps: cliConfig.steps.create.map(step => ({
+        ...step,
+        initial: step.name === 'name' ? name : options[step.name]
+      }))
+    });
+    await create({ ...options, ...cli });
   });
 
 program
@@ -43,7 +91,14 @@ program
   .option('--convert <type>', 'Convert project to a different type')
   .action(async (options) => {
     const { evolve } = await import('./commands/evolve');
-    await evolve(options);
+    const cli = await createCLI({
+      ...cliConfig,
+      steps: cliConfig.steps.evolve.map(step => ({
+        ...step,
+        initial: options[step.name]
+      }))
+    });
+    await evolve({ ...options, ...cli });
   });
 
 program
@@ -59,7 +114,14 @@ program
   .description('View or edit global configurations')
   .action(async () => {
     const { config } = await import('./commands/config');
-    await config({});
+    const cli = await createCLI({
+      ...cliConfig,
+      steps: cliConfig.steps.config.map(step => ({
+        ...step,
+        initial: step.name === 'action' ? 'view' : undefined
+      }))
+    });
+    await config({ ...cli });
   });
 
 program.parse(); 
