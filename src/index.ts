@@ -22,10 +22,10 @@ import { getBanner } from './utils/banner.js';
               name: 'name',
               type: 'text',
               message: 'Project name: ',
-              description: 'Name of the project',
+              description: 'Name of the project (lowercase with optional hyphens)',
               validate: (input: string) => {
                 if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(input)) {
-                  return 'Project name must start and end with alphanumeric characters and may contain hyphens in between';
+                  return 'Project name must be lowercase, start and end with alphanumeric characters, and may contain hyphens in between';
                 }
                 if (input.length < 2) {
                   return 'Project name must be at least 2 characters long';

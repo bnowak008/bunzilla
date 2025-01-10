@@ -2,10 +2,11 @@ import { createInterface } from 'node:readline';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import { getBanner } from './banner.js';
+import type { ProjectType } from '../types.js';
 
 type Choice<T = string> = {
-  title: string;
-  value: T;
+  readonly title: string;
+  readonly value: T;
 }
 
 type BaseStep<T = any> = {
@@ -60,27 +61,32 @@ async function text(message: string, initial?: string, validate?: (input: string
   });
 
   const promptText = chalk.cyan('? ') + message + (initial ? chalk.dim(` (${initial})`) : '') + ' ';
-  console.log(promptText);
-  currentLine++;
+  
+  while (true) {
+    try {
+      console.log(promptText);
+      currentLine++;
 
-  try {
-    const answer = await new Promise<string>((resolve) => {
-      rl.question('', (input) => {
-        resolve(input || initial || '');
+      const answer = await new Promise<string>((resolve) => {
+        rl.question('', (input) => {
+          resolve(input || initial || '');
+        });
       });
-    });
 
-    if (validate) {
-      const result = validate(answer);
-      if (typeof result === 'string') {
-        throw new Error(result);
+      if (validate) {
+        const result = validate(answer);
+        if (typeof result === 'string') {
+          console.log(chalk.red('✖ ') + result);
+          continue;
+        }
       }
-    }
 
-    return answer;
-  } finally {
-    rl.close();
-    currentLine++;
+      rl.close();
+      return answer;
+    } catch (error) {
+      rl.close();
+      throw error;
+    }
   }
 }
 
@@ -244,7 +250,11 @@ function createCommand(program: Command, commandName: string, config: CommandCon
 
     try {
       const handler = await loadCommand(commandName);
-      await handler[commandName]({ ...options, ...answers });
+      await handler[commandName]({ 
+        ...options, 
+        ...answers,
+        defaults: false
+      });
     } catch (error) {
       console.error(`Failed to load command handler for ${commandName}:`, error);
       throw error;

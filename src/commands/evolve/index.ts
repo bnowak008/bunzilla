@@ -2,10 +2,10 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import chalk from 'chalk';
 import ora from 'ora';
-import { TemplateManager } from '../../utils/template-manager';
-import { EvolveOptions } from './types';
+import { TemplateManager } from '../../utils/template-manager.js';
+import type { EvolveOptions } from './types.js';
 
-export * from './types';
+export * from './types.js';
 
 export async function evolve(options: EvolveOptions): Promise<void> {
   const spinner = ora('Evolving project...').start();
@@ -23,26 +23,14 @@ export async function evolve(options: EvolveOptions): Promise<void> {
 
     if (options.add) {
       for (const feature of options.add) {
-        const templatePath = templateManager.getTemplate(feature);
-        if (!existsSync(templatePath)) {
-          spinner.fail(chalk.red(`No template found for feature: ${feature}`));
-          throw new Error(`No template found for feature: ${feature}`);
-        }
-
-        // Process template
-        await templateManager.processTemplate(templatePath, projectPath);
+        // Process each feature directly as a ProjectType
+        await templateManager.processTemplate(feature, projectPath);
       }
     }
 
     if (options.convert) {
-      const templatePath = templateManager.getTemplate(options.convert);
-      if (!existsSync(templatePath)) {
-        spinner.fail(chalk.red(`No template found for type: ${options.convert}`));
-        throw new Error(`No template found for type: ${options.convert}`);
-      }
-
-      // Process template
-      await templateManager.processTemplate(templatePath, projectPath);
+      // Process conversion directly as a ProjectType
+      await templateManager.processTemplate(options.convert, projectPath);
     }
 
     spinner.succeed(chalk.green('Project evolved successfully'));

@@ -1,7 +1,17 @@
-export type ProjectType = 'utility' | 'webapp' | 'api' | 'monorepo' | 'cli';
-
-export interface CreateOptions {
+export type BaseCreateOptions = {
   name: string;
-  type: ProjectType;
-  defaults?: boolean;
-} 
+  defaults: boolean;
+}
+
+export type CreateOptions = 
+  | (BaseCreateOptions & { type: 'utility' })
+  | (BaseCreateOptions & { type: 'monorepo' })
+  | (BaseCreateOptions & { type: 'cli' })
+  | (BaseCreateOptions & { 
+      type: 'webapp';
+      frontend?: 'react' | 'solid' | 'svelte';
+    })
+  | (BaseCreateOptions & {
+      type: 'api';
+      framework?: 'hono' | 'fastify' | 'express';
+    }); 

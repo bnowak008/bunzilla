@@ -13,7 +13,9 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp -r src/templates dist/esm/ && chmod +x dist/esm/index.js",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp -r src/templates dist/esm/ && chmod +x dist/esm/index.js && bun run postbuild",
+    "prebuild": "bun run scripts/prepare-build.js",
+    "postbuild": "bun scripts/fix-imports.js",
     "test": "bun test",
     "lint": "biome check .",
     "format": "biome format . --write",
@@ -43,7 +45,8 @@
     "@types/node": "^20.10.6",
     "@types/prompts": "^2.4.9",
     "bun-types": "latest",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
   },
   "engines": {
     "bun": ">=1.0.0"
