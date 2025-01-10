@@ -1,6 +1,7 @@
 import { createInterface } from 'node:readline';
 import chalk from 'chalk';
 import { Command } from 'commander';
+import { getBanner } from './banner.js';
 
 type Choice<T = string> = {
   title: string;
@@ -203,8 +204,21 @@ async function promptSteps(config: CommandConfig) {
   return answers;
 }
 
-function createCommand(program: Command, name: string, config: CommandConfig) {
-  const command = program.command(name);
+async function loadCommand(commandName: string) {
+  try {
+    const handler = await import(`${process.cwd()}/dist/esm/commands/${commandName}/index.js`);
+    if (!handler[commandName]) {
+      throw new Error(`Command ${commandName} not found in module`);
+    }
+    return handler;
+  } catch (error) {
+    console.error(`Failed to load command: ${commandName}`, error);
+    throw error;
+  }
+}
+
+function createCommand(program: Command, commandName: string, config: CommandConfig) {
+  const command = program.command(commandName);
   command.description(config.description);
 
   config.steps.forEach(step => {
@@ -219,23 +233,28 @@ function createCommand(program: Command, name: string, config: CommandConfig) {
     }
   });
 
-  command.action(async (name, options) => {
+  command.action(async (firstArg, options) => {
     const answers = await promptSteps({
       ...config,
       steps: config.steps.map(step => ({
         ...step,
-        initial: step.name === 'name' ? name : options[step.name]
+        initial: step.name === 'name' ? firstArg : options[step.name]
       }))
     });
 
-    const handler = await import(`../commands/${name}`);
-    await handler[name]({ ...options, ...answers });
+    try {
+      const handler = await loadCommand(commandName);
+      await handler[commandName]({ ...options, ...answers });
+    } catch (error) {
+      console.error(`Failed to load command handler for ${commandName}:`, error);
+      throw error;
+    }
   });
 
   return command;
 }
 
-function createCLI(config: CLIConfig) {
+async function createCLI(config: CLIConfig) {
   const program = new Command();
 
   program

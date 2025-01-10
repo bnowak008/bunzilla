@@ -32,13 +32,17 @@ export async function publish(options: PublishOptions): Promise<void> {
       throw new Error('Not a git repository');
     }
 
+    // Run build first
+    spinner.text = 'Building project...';
+    execSync('bun run build', { cwd: projectPath, stdio: 'pipe' });
+
     // Run tests
     spinner.text = 'Running tests...';
     execSync('bun test', { cwd: projectPath, stdio: 'pipe' });
 
-    // Build project
-    spinner.text = 'Building project...';
-    execSync('bun run build', { cwd: projectPath, stdio: 'pipe' });
+    // Run type check
+    spinner.text = 'Running type check...';
+    execSync('bun run typecheck', { cwd: projectPath, stdio: 'pipe' });
 
     // Run linter
     spinner.text = 'Running linter...';

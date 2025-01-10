@@ -1,25 +1,76 @@
-import { join } from 'node:path';
-import { mkdir, cp } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { readdir, stat, mkdir } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import { ProjectType } from '../types';
 
 export class TemplateManager {
   private templatesDir: string;
 
   constructor() {
-    this.templatesDir = join(__dirname, '..', 'templates');
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    this.templatesDir = join(currentDir, '..', 'templates');
   }
 
   getTemplate(type: ProjectType): string {
     return join(this.templatesDir, type);
   }
 
-  async processTemplate(templatePath: string, targetDir: string): Promise<void> {
-    // Create the target directory
+  private async getAllFiles(dir: string): Promise<string[]> {
+    const files: string[] = [];
+    
+    async function scan(directory: string, baseDir: string) {
+      const entries = await readdir(directory);
+      for (const entry of entries) {
+        const fullPath = join(directory, entry);
+        const relativePath = join(baseDir, entry);
+        
+        const stats = await stat(fullPath);
+        if (stats.isDirectory()) {
+          await scan(fullPath, relativePath);
+        } else {
+          files.push(relativePath);
+        }
+      }
+    }
+
+    await scan(dir, '');
+    return files;
+  }
+
+  async processTemplate(templatePath: string, targetDir: string, variables: Record<string, string> = {}): Promise<void> {
+    // Create directory
     await mkdir(targetDir, { recursive: true });
+    
+    // Copy template directory
+    await Bun.spawn(['cp', '-r', `${templatePath}/.`, targetDir]);
 
-    // Copy the template directory to the target directory
-    await cp(templatePath, targetDir, { recursive: true });
+    // Process template variables
+    const files = await this.getAllFiles(targetDir);
+    
+    for (const file of files) {
+      const filePath = join(targetDir, file);
+      
+      // Skip binary files
+      if (!this.isTextFile(file)) continue;
+      
+      const content = await Bun.file(filePath).text();
+      
+      // Replace template variables
+      const processed = Object.entries(variables).reduce(
+        (acc, [key, value]) => acc.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), value),
+        content
+      );
+      
+      await Bun.write(filePath, processed);
+    }
+  }
 
-    // TODO: Process any template variables (like project name) in the copied files
+  private isTextFile(filename: string): boolean {
+    const textExtensions = [
+      '.ts', '.tsx', '.js', '.jsx', '.json', '.md', '.txt', 
+      '.html', '.css', '.scss', '.yaml', '.yml', '.env',
+      '.gitignore', '.npmignore', '.eslintrc', '.prettierrc'
+    ];
+    return textExtensions.some(textExt => filename.toLowerCase().endsWith(textExt));
   }
 } 
