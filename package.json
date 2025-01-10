@@ -3,9 +3,9 @@
   "version": "0.0.4",
   "description": "A CLI tool for bootstrapping Bun projects with modern development practices",
   "type": "module",
-  "main": "dist/esm/index.js",
+  "main": "dist/index.js",
   "bin": {
-    "bunzilla": "./dist/esm/index.js"
+    "bunzilla": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -13,13 +13,11 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp -r src/templates dist/esm/ && chmod +x dist/esm/index.js && bun run postbuild",
-    "prebuild": "bun run scripts/prepare-build.js",
-    "postbuild": "bun scripts/fix-imports.js",
+    "build": "rm -rf dist && bun build ./src/index.ts ./src/commands/* --outdir ./dist --target node --minify --sourcemap && cp -r src/templates dist/templates && chmod +x dist/index.js",
     "test": "bun test",
     "lint": "biome check .",
     "format": "biome format . --write",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "validate-templates": "bun run src/scripts/validate-templates.ts"
   },
   "keywords": [
@@ -53,11 +51,11 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "types": "./dist/types/index.d.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
-  "types": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "publishConfig": {
     "access": "public"
   }

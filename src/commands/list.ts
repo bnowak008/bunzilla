@@ -1,9 +1,6 @@
 import chalk from 'chalk';
-import { TemplateManager } from '../utils/template-manager';
 
 export async function list() {
-  const templateManager = new TemplateManager();
-  
   console.log(chalk.bold('\nAvailable templates:\n'));
 
   const templates = [

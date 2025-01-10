@@ -3,89 +3,110 @@ import { readdir, stat, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { ProjectType } from '../types.js';
 import { logger } from './logger.js';
-import { ErrorCode, BunzillaError } from './errors.js';
 
-export class TemplateManager {
-  private templatesDir: string;
-  private readonly templateVariables: Record<string, string>;
+type TemplateVariables = Record<string, string>;
 
-  constructor() {
-    const currentDir = dirname(fileURLToPath(import.meta.url));
-    this.templatesDir = join(currentDir, '..', 'templates');
-    this.templateVariables = {};
+function getRootDir(): string {
+  const currentDir = dirname(fileURLToPath(import.meta.url));
+  const isDistBuild = currentDir.includes('dist');
+
+  // Navigate up until we find either the src or dist directory
+  let rootDir = currentDir;
+  while (rootDir && !rootDir.endsWith('dist') && !rootDir.endsWith('src')) {
+    rootDir = dirname(rootDir);
+  }
+  
+  // Go up one more level to get to project root if we're in src
+  if (rootDir.endsWith('src')) {
+    rootDir = dirname(rootDir);
   }
 
-  private getTemplate(type: ProjectType): string {
-    const templatePath = join(this.templatesDir, type);
-    return templatePath;
-  }
+  console.log('Root directory:', rootDir);
+  return rootDir;
+}
 
-  setVariable(key: string, value: string): void {
-    this.templateVariables[key] = value;
-  }
+function getTemplatesDir(): string {
+  const rootDir = getRootDir();
+  const isDistBuild = rootDir.endsWith('dist');
 
-  private async processFileContent(content: string): Promise<string> {
-    return content.replace(/\$\{([^}]+)\}/g, (_, key) => 
-      this.templateVariables[key] || '${' + key + '}'
-    );
-  }
+  console.log('Is dist build:', isDistBuild);
 
-  async processTemplate(type: ProjectType, targetName: string): Promise<void> {
-    const templatePath = this.getTemplate(type);
-    const targetPath = join(process.cwd(), targetName);
+  const templatesPath = isDistBuild
+    ? join(rootDir, 'templates')
+    : join(rootDir, 'src', 'templates');
 
-    try {
-      // Set up basic variables
-      this.setVariable('projectName', targetName);
+  logger.debug('Templates path:', templatesPath);
+  
+  return templatesPath;
+}
+
+function getTemplatePath(type: ProjectType): string {
+  return join(getTemplatesDir(), type);
+}
+
+async function getAllFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  
+  async function scan(directory: string, baseDir: string) {
+    const entries = await readdir(directory);
+    for (const entry of entries) {
+      const fullPath = join(directory, entry);
+      const stats = await stat(fullPath);
       
-      // Create target directory
-      await mkdir(targetPath, { recursive: true });
-
-      // Process all files
-      const files = await this.getAllFiles(templatePath);
-      
-      for (const file of files) {
-        const sourcePath = join(templatePath, file);
-        const targetFilePath = join(targetPath, file);
-        const targetDir = dirname(targetFilePath);
-
-        // Ensure target directory exists
-        await mkdir(targetDir, { recursive: true });
-
-        // Read and process file content
-        const content = await readFile(sourcePath, 'utf-8');
-        const processedContent = await this.processFileContent(content);
-
-        // Write processed content
-        await writeFile(targetFilePath, processedContent);
-        
-        logger.debug(`Processed file: ${file}`);
+      if (stats.isDirectory()) {
+        await scan(fullPath, baseDir);
+      } else {
+        const relativePath = fullPath.slice(baseDir.length + 1);
+        files.push(relativePath);
       }
-    } catch (error) {
-      logger.error('Failed to process template:', error);
-      throw error;
     }
   }
 
-  private async getAllFiles(dir: string): Promise<string[]> {
-    const files: string[] = [];
+  await scan(dir, dir);
+  return files;
+}
+
+function processFileContent(content: string, variables: TemplateVariables): string {
+  return content.replace(/\$\{([^}]+)\}/g, (_, key) => 
+    variables[key] || '${' + key + '}'
+  );
+}
+
+export async function processTemplate(
+  type: ProjectType, 
+  targetName: string, 
+  variables: TemplateVariables = {}
+): Promise<void> {
+  const templatePath = getTemplatePath(type);
+  const targetPath = join(process.cwd(), targetName);
+  const templateVariables = { ...variables, projectName: targetName };
+
+  try {
+    // Create target directory
+    await mkdir(targetPath, { recursive: true });
+
+    // Process all files
+    const files = await getAllFiles(templatePath);
     
-    async function scan(directory: string, baseDir: string) {
-      const entries = await readdir(directory);
-      for (const entry of entries) {
-        const fullPath = join(directory, entry);
-        const stats = await stat(fullPath);
-        
-        if (stats.isDirectory()) {
-          await scan(fullPath, baseDir);
-        } else {
-          const relativePath = fullPath.slice(baseDir.length + 1);
-          files.push(relativePath);
-        }
-      }
-    }
+    for (const file of files) {
+      const sourcePath = join(templatePath, file);
+      const targetFilePath = join(targetPath, file);
+      const targetDir = dirname(targetFilePath);
 
-    await scan(dir, dir);
-    return files;
+      // Ensure target directory exists
+      await mkdir(targetDir, { recursive: true });
+
+      // Read and process file content
+      const content = await readFile(sourcePath, 'utf-8');
+      const processedContent = processFileContent(content, templateVariables);
+
+      // Write processed content
+      await writeFile(targetFilePath, processedContent);
+      
+      logger.debug(`Processed file: ${file}`);
+    }
+  } catch (error) {
+    logger.error('Failed to process template:', error);
+    throw error;
   }
 } 

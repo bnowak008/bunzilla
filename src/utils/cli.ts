@@ -3,6 +3,8 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { getBanner } from './banner.js';
 import type { ProjectType } from '../types.js';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 type Choice<T = string> = {
   readonly title: string;
@@ -212,7 +214,13 @@ async function promptSteps(config: CommandConfig) {
 
 async function loadCommand(commandName: string) {
   try {
-    const handler = await import(`${process.cwd()}/dist/esm/commands/${commandName}/index.js`);
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const isDistBuild = currentDir.endsWith('dist');
+    const commandPath = isDistBuild
+      ? join(currentDir, 'commands', commandName, 'index.js')
+      : join(currentDir, '..', 'commands', commandName, 'index.js');
+
+    const handler = await import(commandPath);
     if (!handler[commandName]) {
       throw new Error(`Command ${commandName} not found in module`);
     }

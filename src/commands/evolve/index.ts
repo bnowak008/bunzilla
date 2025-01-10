@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import chalk from 'chalk';
 import ora from 'ora';
-import { TemplateManager } from '../../utils/template-manager.js';
+import { processTemplate } from '../../utils/template-manager.js';
 import type { EvolveOptions } from './types.js';
 
 export * from './types.js';
@@ -19,18 +19,14 @@ export async function evolve(options: EvolveOptions): Promise<void> {
       throw new Error(`Directory ${options.projectDir} does not exist`);
     }
 
-    const templateManager = new TemplateManager();
-
     if (options.add) {
       for (const feature of options.add) {
-        // Process each feature directly as a ProjectType
-        await templateManager.processTemplate(feature, projectPath);
+        await processTemplate(feature, projectPath);
       }
     }
 
     if (options.convert) {
-      // Process conversion directly as a ProjectType
-      await templateManager.processTemplate(options.convert, projectPath);
+      await processTemplate(options.convert, projectPath);
     }
 
     spinner.succeed(chalk.green('Project evolved successfully'));
