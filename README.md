@@ -13,8 +13,12 @@
 ## 🚀 Quick Start
 
 ```bash
-# Create a new project
+# Option 1: Run directly with bunx
 bunx bunzilla create my-awesome-app
+
+# Option 2: Install globally
+bun add -g bunzilla
+bunzilla create my-awesome-app
 
 # Navigate to your project
 cd my-awesome-app
@@ -23,65 +27,131 @@ cd my-awesome-app
 bun dev
 ```
 
-## ✨ Features
+## 📦 Available Commands
 
-### 🎨 Web Apps
-- React, Solid, or Svelte
-- TailwindCSS & Shadcn
-- TypeScript by Default
-- Hot Module Replacement
-- SEO Optimized
-
-### 🚀 API Projects
-- Hono, Fastify, or Express
-- Drizzle ORM Integration
-- JWT Authentication
-- OpenAPI Documentation
-- End-to-End Type Safety
-
-### 📦 Utility Packages
-- NPM Package Ready
-- esbuild Pipeline
-- Vitest Setup
-- Automated Publishing
-- TypeScript Config
-
-### 🏢 Monorepos
-- Workspace Management
-- Shared Configurations
-- Version Control
-- CI/CD Integration
-- Cross-Package Testing
-
-## 🛠 Commands
-
-### Create New Project
+### Create Project
 ```bash
-bunzilla create [type] --name my-app [options]
+bunzilla create [options]
+
+Options:
+  --name <name>     Project name
+  --type <type>     Project type (utility|webapp|api|monorepo|cli)
+  --frontend <fw>   Frontend framework for webapp (react|solid|svelte)
+  --framework <fw>  API framework (hono|fastify|express)
+  --defaults        Skip prompts and use defaults
 ```
 
-**Options:**
-- `--type`: webapp | api | utility | monorepo | cli
-- `--frontend`: react | solid | svelte
-- `--framework`: hono | fastify | express
-- `--defaults`: Skip prompts with default values
-
-### Project Evolution
+### Evolve Project
 ```bash
-# Add CLI capabilities
-bunzilla evolve --add cli
+bunzilla evolve [options]
 
-# Convert to monorepo
-bunzilla evolve --convert monorepo
+Options:
+  --add <feature>    Add features (cli|frontend|api)
+  --convert <type>   Convert to different project type
+  --project-dir <dir> Target project directory
+```
+
+### Manage Configuration
+```bash
+bunzilla config [options]
+
+Options:
+  --get <key>       Get config value
+  --set <key> <value> Set config value
+  --list            List all config values
+  --delete <key>    Delete config value
+```
+
+## 🎨 Project Types
+
+### Utility Package
+- TypeScript configuration
+- Testing with Vitest
+- Linting with Biome
+- Build configuration
+- NPM publishing setup
+
+### Web Application
+- React, Solid, or Svelte
+- TailwindCSS for styling
+- React Router for navigation
+- React Query for data fetching
+- Vite for fast development
+
+### API Service
+- Hono, Fastify, or Express
+- OpenAPI documentation
+- JWT authentication
+- Database integration with Drizzle
+- End-to-end type safety
+
+### CLI Tool
+- Interactive command-line interface
+- Configuration management
+- Update notifications
+- Progress spinners
+- Colorful output
+
+### Monorepo
+- Workspace management
+- Shared configurations
+- Independent versioning
+- Build pipeline
+- Cross-package testing
+
+## 🛠 Development Scripts
+
+All projects include these common scripts:
+
+```bash
+bun run dev        # Start development
+bun run build      # Build for production
+bun run test       # Run tests
+bun run lint       # Run linter
+bun run format     # Format code
+bun run typecheck  # Type check
+```
+
+## 🔧 Configuration
+
+Bunzilla stores global configuration in `~/.bunzilla/config.json`. Default values:
+
+```json
+{
+  "defaultTemplate": "utility",
+  "defaultFramework": "hono",
+  "defaultFrontend": "react"
+}
 ```
 
 ## 🔄 Evolution Paths
 
-### Utility → CLI → Monorepo
-Start with a simple utility package and evolve it into a CLI tool, then scale to a monorepo as needed.
+### Utility → CLI
+Start with a simple utility package and evolve it into a CLI tool:
+```bash
+# Create a utility package
+bunzilla create my-package --type utility
 
-### API → Full Stack → Monorepo
-Begin with a backend API and gradually add frontend components, eventually splitting into a monorepo structure.
+# Later, add CLI capabilities
+bunzilla evolve --add cli --project-dir my-package
+```
+
+### API → Full Stack
+Begin with a backend API and gradually add frontend components:
+```bash
+# Create an API service
+bunzilla create my-api --type api --framework hono
+
+# Later, add frontend
+bunzilla evolve --add frontend --project-dir my-api
+```
+
+### Single Package → Monorepo
+Scale any project to a monorepo structure when needed:
+```bash
+# Convert existing project to monorepo
+bunzilla evolve --convert monorepo --project-dir my-project
+```
 
 ## 🤝 Contributing
 
