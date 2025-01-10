@@ -13,11 +13,11 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build": "rm -rf dist && bun build ./src/index.ts ./src/commands/* --outdir ./dist --target node --minify --sourcemap && cp -r src/templates dist/templates && chmod +x dist/index.js",
     "test": "bun test",
     "lint": "biome check .",
     "format": "biome format . --write",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
     "validate-templates": "bun run src/scripts/validate-templates.ts"
   },
   "keywords": [
@@ -43,9 +43,20 @@
     "@types/node": "^20.10.6",
     "@types/prompts": "^2.4.9",
     "bun-types": "latest",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
   },
   "engines": {
     "bun": ">=1.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,10 +1,14 @@
 import { createInterface } from 'node:readline';
 import chalk from 'chalk';
 import { Command } from 'commander';
+import { getBanner } from './banner.js';
+import type { ProjectType } from '../types.js';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 type Choice<T = string> = {
-  title: string;
-  value: T;
+  readonly title: string;
+  readonly value: T;
 }
 
 type BaseStep<T = any> = {
@@ -59,27 +63,32 @@ async function text(message: string, initial?: string, validate?: (input: string
   });
 
   const promptText = chalk.cyan('? ') + message + (initial ? chalk.dim(` (${initial})`) : '') + ' ';
-  console.log(promptText);
-  currentLine++;
+  
+  while (true) {
+    try {
+      console.log(promptText);
+      currentLine++;
 
-  try {
-    const answer = await new Promise<string>((resolve) => {
-      rl.question('', (input) => {
-        resolve(input || initial || '');
+      const answer = await new Promise<string>((resolve) => {
+        rl.question('', (input) => {
+          resolve(input || initial || '');
+        });
       });
-    });
 
-    if (validate) {
-      const result = validate(answer);
-      if (typeof result === 'string') {
-        throw new Error(result);
+      if (validate) {
+        const result = validate(answer);
+        if (typeof result === 'string') {
+          console.log(chalk.red('✖ ') + result);
+          continue;
+        }
       }
-    }
 
-    return answer;
-  } finally {
-    rl.close();
-    currentLine++;
+      rl.close();
+      return answer;
+    } catch (error) {
+      rl.close();
+      throw error;
+    }
   }
 }
 
@@ -203,8 +212,27 @@ async function promptSteps(config: CommandConfig) {
   return answers;
 }
 
-function createCommand(program: Command, name: string, config: CommandConfig) {
-  const command = program.command(name);
+async function loadCommand(commandName: string) {
+  try {
+    const currentDir = dirname(fileURLToPath(import.meta.url));
+    const isDistBuild = currentDir.endsWith('dist');
+    const commandPath = isDistBuild
+      ? join(currentDir, 'commands', commandName, 'index.js')
+      : join(currentDir, '..', 'commands', commandName, 'index.js');
+
+    const handler = await import(commandPath);
+    if (!handler[commandName]) {
+      throw new Error(`Command ${commandName} not found in module`);
+    }
+    return handler;
+  } catch (error) {
+    console.error(`Failed to load command: ${commandName}`, error);
+    throw error;
+  }
+}
+
+function createCommand(program: Command, commandName: string, config: CommandConfig) {
+  const command = program.command(commandName);
   command.description(config.description);
 
   config.steps.forEach(step => {
@@ -219,23 +247,32 @@ function createCommand(program: Command, name: string, config: CommandConfig) {
     }
   });
 
-  command.action(async (name, options) => {
+  command.action(async (firstArg, options) => {
     const answers = await promptSteps({
       ...config,
       steps: config.steps.map(step => ({
         ...step,
-        initial: step.name === 'name' ? name : options[step.name]
+        initial: step.name === 'name' ? firstArg : options[step.name]
       }))
     });
 
-    const handler = await import(`../commands/${name}`);
-    await handler[name]({ ...options, ...answers });
+    try {
+      const handler = await loadCommand(commandName);
+      await handler[commandName]({ 
+        ...options, 
+        ...answers,
+        defaults: false
+      });
+    } catch (error) {
+      console.error(`Failed to load command handler for ${commandName}:`, error);
+      throw error;
+    }
   });
 
   return command;
 }
 
-function createCLI(config: CLIConfig) {
+async function createCLI(config: CLIConfig) {
   const program = new Command();
 
   program

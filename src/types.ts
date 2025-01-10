@@ -6,7 +6,7 @@ export const projectTypes = [
   { title: 'API Service', value: 'api' },
   { title: 'Monorepo', value: 'monorepo' },
   { title: 'CLI Tool', value: 'cli' }
-] as Array<{ title: string; value: ProjectType }>;
+] as const satisfies Array<{ title: string; value: ProjectType }>;
 
 export interface CLISteps {
   create: Array<{

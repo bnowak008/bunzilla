@@ -1,47 +1,53 @@
 import { join } from 'node:path';
-import { existsSync } from 'node:fs';
-import kleur from 'kleur';
+import chalk from 'chalk';
 import ora from 'ora';
-import { TemplateManager } from '../../utils/template-manager';
-import { CreateOptions, ProjectType } from './types';
+import { 
+  createOptionsSchema,
+  logger,
+  processTemplate,
+  ErrorCode,
+  BunzillaError 
+} from '../../utils/index.js';
+import type { CreateOptions } from './types.js';
 
 export async function create(options: CreateOptions): Promise<void> {
-  const spinner = ora({ color: 'cyan' });
-  const { name, type } = options;
-
   try {
+    // Validate options
+    const validatedOptions = createOptionsSchema.parse(options);
+    const { name, type } = validatedOptions;
+
     if (!name || !type) {
-      throw new Error('Missing required options');
+      throw new BunzillaError(
+        ErrorCode.INVALID_OPTIONS,
+        'Project name and type are required'
+      );
     }
 
-    spinner.start('Creating project...');
-    const projectDir = join(process.cwd(), name);
+    const spinner = ora('Creating your project...').start();
 
-    if (existsSync(projectDir)) {
-      spinner.fail(kleur.red(`Directory ${name} already exists`));
-      throw new Error(`Directory ${name} already exists`);
+    try {
+      await processTemplate(type, name);
+
+      spinner.succeed(chalk.green(`Successfully created ${chalk.bold(name)}`));
+
+      // Show project creation success message
+      console.log('\n' + chalk.bgGreen.black(' SUCCESS ') + ' Project created successfully! 🎉\n');
+
+      // Show project info
+      console.log(chalk.cyan('📁 Project location:'));
+      console.log(`   ${chalk.dim(join(process.cwd(), name))}\n`);
+
+      // Show available scripts
+      console.log(chalk.cyan('🔧 Available scripts:'));
+      console.log(`   ${chalk.yellow('bun install')}         ${chalk.dim('Install dependencies')}`);
+      console.log(`   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start development server')}`);
+      console.log(`   ${chalk.yellow('bun run build')}       ${chalk.dim('Build for production')}`);
+    } catch (error) {
+      spinner.fail(chalk.red('Failed to create project'));
+      throw error;
     }
-
-    const templateManager = new TemplateManager();
-    const templatePath = templateManager.getTemplate(type as ProjectType);
-
-    if (!existsSync(templatePath)) {
-      spinner.fail(kleur.red(`No template found for type: ${type}`));
-      throw new Error(`No template found for type: ${type}`);
-    }
-
-    await templateManager.processTemplate(templatePath, projectDir);
-    spinner.succeed(kleur.green(`Project ${name} created successfully`));
-    
-    console.log('\nNext steps:');
-    console.log(kleur.cyan(`  cd ${name}`));
-    console.log(kleur.cyan('  bun install'));
-    console.log(kleur.cyan('  bun run dev'));
   } catch (error) {
-    spinner.fail(kleur.red('Failed to create project'));
-    if (error instanceof Error) {
-      console.error(kleur.red(error.message));
-    }
-    process.exit(1);
+    logger.error('Failed to create project:', error);
+    throw error;
   }
-} 
+}
