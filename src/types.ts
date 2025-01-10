@@ -1,3 +1,20 @@
+export const webappFrameworks = [
+  { title: 'React', value: 'react' },
+  { title: 'Solid', value: 'solid' },
+  { title: 'Svelte', value: 'svelte' },
+  { title: 'Astro', value: 'astro' },
+  { title: 'TypeScript', value: 'ts' }
+] as const;
+
+export const apiFrameworks = [
+  { title: 'Hono', value: 'hono' },
+  { title: 'Fastify', value: 'fastify' },
+  { title: 'Express', value: 'express' }
+] as const;
+
+export type WebAppFramework = typeof webappFrameworks[number]['value'];
+export type ApiFramework = typeof apiFrameworks[number]['value'];
+
 export type ProjectType = 'utility' | 'webapp' | 'api' | 'monorepo' | 'cli';
 
 export const projectTypes = [
@@ -31,38 +48,30 @@ export interface CLISteps {
 }
 
 export type WebAppOptions = {
-  frontend: 'react' | 'solid' | 'svelte';
+  frontend: 'react' | 'solid' | 'svelte' | 'astro' | 'ts';
 };
 
 export type ApiOptions = {
   framework: 'hono' | 'fastify' | 'express';
 };
 
-export type CreateOptions = 
-  | {
-      defaults: true;
-      name: string;
-      type: 'utility' | 'monorepo' | 'cli';
-    }
-  | {
-      defaults: true;
-      name: string;
-      type: 'webapp';
-      frontend: WebAppOptions['frontend'];
-    }
-  | {
-      defaults: true;
-      name: string;
-      type: 'api';
-      framework: ApiOptions['framework'];
-    }
-  | {
-      defaults: false;
-      name?: string;
-      type?: ProjectType;
-      frontend?: WebAppOptions['frontend'];
-      framework?: ApiOptions['framework'];
-    };
+export type MonorepoPackage = 'all' | 'frontend' | 'backend' | 'custom';
+
+export const monorepoPackages = [
+  { title: 'All (Frontend + Backend + Shared)', value: 'all' },
+  { title: 'Frontend Only', value: 'frontend' },
+  { title: 'Backend Only', value: 'backend' },
+  { title: 'Custom Selection', value: 'custom' }
+] as const;
+
+export type CreateOptions = {
+  name: string;
+  type: ProjectType;
+  frontend?: WebAppFramework;
+  framework?: ApiFramework;
+  packages?: MonorepoPackage;
+  defaults?: boolean;
+};
 
 export interface Template {
   name: string;

@@ -7,12 +7,11 @@ import {
   processTemplate,
   ErrorCode,
   BunzillaError 
-} from '../../utils/index.js';
-import type { CreateOptions } from './types.js';
+} from '../../utils/index';
+import type { CreateOptions } from '../../types';
 
 export async function create(options: CreateOptions): Promise<void> {
   try {
-    // Validate options
     const validatedOptions = createOptionsSchema.parse(options);
     const { name, type } = validatedOptions;
 
@@ -26,7 +25,50 @@ export async function create(options: CreateOptions): Promise<void> {
     const spinner = ora('Creating your project...').start();
 
     try {
-      await processTemplate(type, name);
+      // Handle different project types
+      switch (type) {
+        case 'webapp': {
+          if (!options.frontend) {
+            throw new BunzillaError(
+              ErrorCode.INVALID_OPTIONS,
+              'Frontend framework must be selected for webapp projects'
+            );
+          }
+          const templatePath = `webapp-${options.frontend}`;
+          await processTemplate(templatePath, name);
+          break;
+        }
+        case 'api': {
+          const templatePath = options.framework 
+            ? `api-${options.framework}`
+            : 'api';
+          await processTemplate(templatePath, name);
+          break;
+        }
+        case 'monorepo': {
+          // Create base monorepo structure
+          await processTemplate('monorepo', name);
+          
+          // Set default frameworks if not explicitly chosen
+          const frontend = options.frontend || 'react';
+          const framework = options.framework || 'hono';
+          
+          // Process selected packages
+          if (options.packages === 'all') {
+            await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
+            await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
+            // Create shared package using utility template
+            await processTemplate('utility', join(process.cwd(), name, 'packages/shared'));
+          } else if (options.packages === 'frontend') {
+            await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
+          } else if (options.packages === 'backend') {
+            await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
+          }
+          break;
+        }
+        default:
+          await processTemplate(type, name);
+      }
 
       spinner.succeed(chalk.green(`Successfully created ${chalk.bold(name)}`));
 

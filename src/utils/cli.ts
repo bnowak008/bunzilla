@@ -26,14 +26,26 @@ type TextStep = BaseStep & {
 
 type SelectStep = BaseStep & {
   type: 'select';
-  choices: Choice[];
+  choices: readonly Choice[];
 }
 
 type ConfirmStep = BaseStep & {
   type: 'confirm';
 }
 
-type StepConfig = TextStep | SelectStep | ConfirmStep;
+type StepConfig = 
+  | ({ type: 'text'; initial?: string } & BaseStep)
+  | ({ 
+      type: 'select'; 
+      initial?: string; 
+      choices: readonly Choice[];
+      when?: (answers: Record<string, any>) => boolean;
+    } & BaseStep)
+  | ({ type: 'confirm'; initial?: boolean } & BaseStep)
+  | ({ 
+      type: ((prev: any) => 'text' | 'select' | 'confirm' | null);
+      choices?: readonly Choice[];
+    } & Omit<BaseStep, 'transform'>);
 
 type CommandConfig = {
   name: string;
@@ -92,7 +104,11 @@ async function text(message: string, initial?: string, validate?: (input: string
   }
 }
 
-async function select<T = string>(message: string, choices: Choice<T>[], initialIndex = 0): Promise<T> {
+async function select<T = string>(
+  message: string, 
+  choices: readonly Choice<T>[], 
+  initialIndex = 0
+): Promise<T> {
   const rl = createInterface({ 
     input: process.stdin, 
     output: process.stdout 
@@ -166,18 +182,33 @@ async function confirm(message: string, initial = false): Promise<boolean> {
   return answer.toLowerCase().startsWith('y');
 }
 
-async function processStep(step: StepConfig): Promise<any> {
-  switch (step.type) {
+async function processStep(step: StepConfig, prevAnswer?: any): Promise<any> {
+  // First check if we should skip this step based on 'when' condition
+  if ('when' in step && typeof step.when === 'function') {
+    const shouldRun = step.when(prevAnswer);
+    if (!shouldRun) {
+      return null;
+    }
+  }
+
+  const stepType = typeof step.type === 'function' ? step.type(prevAnswer) : step.type;
+  
+  if (!stepType) return null;
+
+  switch (stepType) {
     case 'text':
       return text(step.message, step.initial as string, step.validate);
-    case 'select':
-      if (!step.choices) throw new Error('Choices required for select step');
-      return select(step.message, step.choices);
+    case 'select': {
+      const selectStep = step as (SelectStep | { type: Function; choices: readonly Choice[] });
+      if (!selectStep.choices) throw new Error('Choices required for select step');
+      return select(step.message, selectStep.choices);
+    }
     case 'confirm':
       return confirm(step.message, step.initial as boolean);
     default: {
+      // @ts-expect-error
       const _exhaustiveCheck: never = step;
-      throw new Error(`Unknown step type: ${(_exhaustiveCheck as any).type}`);
+      throw new Error(`Unknown step type: ${stepType}`);
     }
   }
 }
@@ -202,8 +233,10 @@ async function promptSteps(config: CommandConfig) {
 
   try {
     for (const step of config.steps) {
-      const answer = await processStep(step);
-      answers[step.name] = answer;
+      const answer = await processStep(step, answers); // Pass the entire answers object
+      if (answer !== null) {
+        answers[step.name] = answer;
+      }
     }
   } finally {
     process.stdout.write('\x1B[?25h');
@@ -235,24 +268,29 @@ function createCommand(program: Command, commandName: string, config: CommandCon
   const command = program.command(commandName);
   command.description(config.description);
 
+  // Add options instead of arguments for all step types
   config.steps.forEach(step => {
-    if (step.type === 'text') {
-      command.argument(`[${step.name}]`, step.description || step.message);
-    } else if (step.type === 'select') {
+    if (typeof step.type === 'function') {
+      // For dynamic steps, add as options
+      command.option(
+        `--${step.name} <${step.name}>`,
+        step.description || step.message
+      );
+    } else {
       command.option(
         `--${step.name} <${step.name}>`,
         step.description || step.message,
-        step.choices.map(c => c.value)
+        step.type === 'select' ? step.choices?.map(c => c.value) : undefined
       );
     }
   });
 
-  command.action(async (firstArg, options) => {
+  command.action(async (options) => {
     const answers = await promptSteps({
       ...config,
       steps: config.steps.map(step => ({
         ...step,
-        initial: step.name === 'name' ? firstArg : options[step.name]
+        initial: options[step.name]
       }))
     });
 
@@ -264,7 +302,7 @@ function createCommand(program: Command, commandName: string, config: CommandCon
         defaults: false
       });
     } catch (error) {
-      console.error(`Failed to load command handler for ${commandName}:`, error);
+      console.error(`Failed to run command handler for ${commandName}:`, error);
       throw error;
     }
   });

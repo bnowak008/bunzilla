@@ -41,6 +41,29 @@ Options:
   --defaults        Skip prompts and use defaults
 ```
 
+By default, running `bunzilla create` without options starts an interactive CLI that guides you through project creation:
+
+```bash
+# Interactive mode (recommended)
+bunzilla create
+
+# Will prompt you to:
+# 1. Enter project name
+# 2. Select project type
+# 3. Choose framework/platform based on type:
+#    - Webapp: React, Solid, or Svelte
+#    - API: Hono, Fastify, or Express
+#    - Monorepo: Select initial packages
+```
+
+Use the `--defaults` flag to skip prompts and use configured defaults:
+
+```bash
+# Non-interactive mode with defaults
+bunzilla create my-app --type webapp --defaults  # Uses default frontend (React)
+bunzilla create my-api --type api --defaults     # Uses default framework (Hono)
+```
+
 ### Evolve Project
 ```bash
 bunzilla evolve [options]

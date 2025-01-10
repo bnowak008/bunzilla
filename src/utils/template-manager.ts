@@ -1,14 +1,16 @@
 import { join, dirname } from 'node:path';
 import { readdir, stat, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { copy } from 'fs-extra';
 import { fileURLToPath } from 'node:url';
 import { ProjectType } from '../types.js';
 import { logger } from './logger.js';
+import { ErrorCode, BunzillaError } from './errors.js';
 
 type TemplateVariables = Record<string, string>;
 
 function getRootDir(): string {
   const currentDir = dirname(fileURLToPath(import.meta.url));
-  const isDistBuild = currentDir.includes('dist');
 
   // Navigate up until we find either the src or dist directory
   let rootDir = currentDir;
@@ -20,8 +22,6 @@ function getRootDir(): string {
   if (rootDir.endsWith('src')) {
     rootDir = dirname(rootDir);
   }
-
-  console.log('Root directory:', rootDir);
   return rootDir;
 }
 
@@ -29,19 +29,23 @@ function getTemplatesDir(): string {
   const rootDir = getRootDir();
   const isDistBuild = rootDir.endsWith('dist');
 
-  console.log('Is dist build:', isDistBuild);
-
   const templatesPath = isDistBuild
     ? join(rootDir, 'templates')
     : join(rootDir, 'src', 'templates');
 
-  logger.debug('Templates path:', templatesPath);
-  
+  if (!existsSync(templatesPath)) {
+    throw new BunzillaError(
+      ErrorCode.TEMPLATE_NOT_FOUND,
+      `Templates directory not found at ${templatesPath}`
+    );
+  }
+
   return templatesPath;
 }
 
-function getTemplatePath(type: ProjectType): string {
-  return join(getTemplatesDir(), type);
+export function getTemplatePath(templateType: ProjectType | string): string {
+  const templatesDir = getTemplatesDir();
+  return join(templatesDir, templateType);
 }
 
 async function getAllFiles(dir: string): Promise<string[]> {
@@ -67,46 +71,59 @@ async function getAllFiles(dir: string): Promise<string[]> {
 }
 
 function processFileContent(content: string, variables: TemplateVariables): string {
+  // For Astro files, we need to handle the variables differently
+  if (content.startsWith('---')) {
+    // Handle frontmatter separately
+    const [frontmatter, ...rest] = content.split('---');
+    const processedContent = rest.join('---').replace(/\$\{([^}]+)\}/g, (_, key) => 
+      variables[key] || ''
+    );
+    return `---${frontmatter}---${processedContent}`;
+  }
+
   return content.replace(/\$\{([^}]+)\}/g, (_, key) => 
-    variables[key] || '${' + key + '}'
+    variables[key] || ''
   );
 }
 
-export async function processTemplate(
-  type: ProjectType, 
-  targetName: string, 
-  variables: TemplateVariables = {}
+async function processTemplateFiles(
+  projectPath: string,
+  variables: Record<string, string>
 ): Promise<void> {
-  const templatePath = getTemplatePath(type);
-  const targetPath = join(process.cwd(), targetName);
-  const templateVariables = { ...variables, projectName: targetName };
-
-  try {
-    // Create target directory
-    await mkdir(targetPath, { recursive: true });
-
-    // Process all files
-    const files = await getAllFiles(templatePath);
-    
-    for (const file of files) {
-      const sourcePath = join(templatePath, file);
-      const targetFilePath = join(targetPath, file);
-      const targetDir = dirname(targetFilePath);
-
-      // Ensure target directory exists
-      await mkdir(targetDir, { recursive: true });
-
-      // Read and process file content
-      const content = await readFile(sourcePath, 'utf-8');
-      const processedContent = processFileContent(content, templateVariables);
-
-      // Write processed content
-      await writeFile(targetFilePath, processedContent);
-      
-      logger.debug(`Processed file: ${file}`);
-    }
-  } catch (error) {
-    logger.error('Failed to process template:', error);
-    throw error;
+  const files = await getAllFiles(projectPath);
+  
+  for (const file of files) {
+    const filePath = join(projectPath, file);
+    const content = await readFile(filePath, 'utf-8');
+    const processedContent = processFileContent(content, variables);
+    await writeFile(filePath, processedContent);
   }
+}
+
+export async function processTemplate(
+  templateType: string,
+  projectName: string,
+): Promise<void> {
+  const templatePath = getTemplatePath(templateType as ProjectType);
+  const projectPath = join(process.cwd(), projectName);
+
+  // Ensure template exists
+  if (!existsSync(templatePath)) {
+    throw new BunzillaError(
+      ErrorCode.TEMPLATE_NOT_FOUND,
+      `Template ${templateType} not found`
+    );
+  }
+
+  // Create project directory
+  await mkdir(projectPath, { recursive: true });
+
+  // Copy template files
+  await copy(templatePath, projectPath);
+
+  // Process template variables
+  await processTemplateFiles(projectPath, {
+    projectName,
+    templateType,
+  });
 } 

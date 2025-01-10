@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createCLI } from './utils/cli.js';
-import { projectTypes } from './types.js';
+import { projectTypes, webappFrameworks, apiFrameworks } from './types.js';
 import { getBanner } from './utils/banner.js';
 
 (async () => {
@@ -22,13 +22,10 @@ import { getBanner } from './utils/banner.js';
               name: 'name',
               type: 'text',
               message: 'Project name: ',
-              description: 'Name of the project (lowercase with optional hyphens)',
+              description: 'Name of the project',
               validate: (input: string) => {
                 if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(input)) {
                   return 'Project name must be lowercase, start and end with alphanumeric characters, and may contain hyphens in between';
-                }
-                if (input.length < 2) {
-                  return 'Project name must be at least 2 characters long';
                 }
                 return true;
               }
@@ -39,6 +36,45 @@ import { getBanner } from './utils/banner.js';
               message: 'Select project type:',
               description: 'Type of project to create',
               choices: projectTypes
+            },
+            {
+              name: 'packages',
+              type: 'select',
+              message: 'Select packages to include:',
+              description: 'Packages to include in monorepo',
+              choices: [
+                { title: 'All (Frontend + Backend + Shared)', value: 'all' },
+                { title: 'Frontend Only', value: 'frontend' },
+                { title: 'Backend Only', value: 'backend' },
+                { title: 'Custom Selection', value: 'custom' }
+              ],
+              when: (answers) => answers.type === 'monorepo'
+            },
+            {
+              name: 'frontend',
+              type: 'select',
+              message: 'Select frontend framework:',
+              description: 'Frontend framework to use',
+              choices: webappFrameworks,
+              when: (answers) => 
+                answers.type === 'webapp' || 
+                (answers.type === 'monorepo' && 
+                 (answers.packages === 'all' || 
+                  answers.packages === 'frontend' || 
+                  answers.packages === 'custom'))
+            },
+            {
+              name: 'framework',
+              type: 'select',
+              message: 'Select API framework:',
+              description: 'API framework to use',
+              choices: apiFrameworks,
+              when: (answers) => 
+                answers.type === 'api' || 
+                (answers.type === 'monorepo' && 
+                 (answers.packages === 'all' || 
+                  answers.packages === 'backend' || 
+                  answers.packages === 'custom'))
             }
           ]
         },

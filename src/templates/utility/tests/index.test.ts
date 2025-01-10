@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { greet } from '../src';
 
-describe('greet', () => {
-  it('should return greeting with name', () => {
+describe('Utility', () => {
+  it('should greet correctly', () => {
     expect(greet('World')).toBe('Hello, World!');
   });
 });
