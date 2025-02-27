@@ -74,15 +74,16 @@ async function text(message: string, initial?: string, validate?: (input: string
     output: process.stdout
   });
 
-  const promptText = chalk.cyan('? ') + message + (initial ? chalk.dim(` (${initial})`) : '') + ' ';
-  
+  // Display the initial prompt with the default value if provided
+  const promptText = chalk.cyan('? ') + message + (initial ? chalk.dim(` (${initial})`) : '');
+  console.log(promptText);
+  currentLine++;
+
   while (true) {
     try {
-      console.log(promptText);
-      currentLine++;
-
       const answer = await new Promise<string>((resolve) => {
         rl.question('', (input) => {
+          // If user just hits enter, use the initial value
           resolve(input || initial || '');
         });
       });
@@ -140,7 +141,7 @@ async function select<T = string>(
   };
 
   try {
-    return await new Promise((resolve) => {
+    const result = await new Promise<T>((resolve) => {
       const handleKeypress = (str: string, key: { name: string }) => {
         if (key.name === 'up' && selectedIndex > 0) {
           selectedIndex--;
@@ -160,7 +161,8 @@ async function select<T = string>(
         process.stdin.setRawMode(false);
         process.stdin.pause();
         rl.close();
-        process.stdout.write('\x1B[?25h\n'); // Show cursor again
+        process.stdout.write('\x1B[?25h'); // Show cursor
+        clearLines(choices.length + 1); // Clear the menu and question
       };
 
       process.stdin.setRawMode(true);
@@ -169,6 +171,8 @@ async function select<T = string>(
 
       renderChoices();
     });
+
+    return result;
   } finally {
     process.stdin.setRawMode(false);
     process.stdin.pause();
@@ -180,6 +184,30 @@ async function select<T = string>(
 async function confirm(message: string, initial = false): Promise<boolean> {
   const answer = await text(`${message} (y/n)`, initial ? 'y' : 'n');
   return answer.toLowerCase().startsWith('y');
+}
+
+function clearLines(count: number) {
+  for (let i = 0; i < count; i++) {
+    process.stdout.write('\x1B[1A'); // Move cursor up one line
+    process.stdout.write('\x1B[2K'); // Clear the line
+  }
+}
+
+function updatePreviousLine(step: StepConfig, answer: any) {
+  clearLines(1);
+  const checkmark = chalk.green('✓');
+  let displayValue = answer;
+  
+  // Format display value based on step type
+  if (step.type === 'select') {
+    const selectStep = step as SelectStep;
+    const choice = selectStep.choices.find(c => c.value === answer);
+    displayValue = choice?.title || answer;
+  } else if (step.type === 'confirm') {
+    displayValue = answer ? 'Yes' : 'No';
+  }
+  
+  console.log(`${checkmark} ${step.message} ${chalk.cyan(displayValue)}`);
 }
 
 async function processStep(step: StepConfig, prevAnswer?: any): Promise<any> {
@@ -195,16 +223,28 @@ async function processStep(step: StepConfig, prevAnswer?: any): Promise<any> {
   
   if (!stepType) return null;
 
+  let answer: any;
+  
   switch (stepType) {
-    case 'text':
-      return text(step.message, step.initial as string, step.validate);
+    case 'text': {
+      const textStep = step as { type: 'text'; initial?: string };
+      answer = await text(step.message, textStep.initial, step.validate);
+      updatePreviousLine(step, answer);
+      return answer;
+    }
     case 'select': {
       const selectStep = step as (SelectStep | { type: Function; choices: readonly Choice[] });
       if (!selectStep.choices) throw new Error('Choices required for select step');
-      return select(step.message, selectStep.choices);
+      answer = await select(step.message, selectStep.choices);
+      updatePreviousLine(step, answer);
+      return answer;
     }
-    case 'confirm':
-      return confirm(step.message, step.initial as boolean);
+    case 'confirm': {
+      const confirmStep = step as { type: 'confirm'; initial?: boolean };
+      answer = await confirm(step.message, confirmStep.initial);
+      updatePreviousLine(step, answer);
+      return answer;
+    }
     default: {
       // @ts-expect-error
       const _exhaustiveCheck: never = step;
@@ -220,12 +260,12 @@ async function promptSteps(config: CommandConfig) {
   process.stdout.write('\x1B[2J\x1B[0f');
   currentLine = 0;
 
+  // Display banner if exists
   if (config.banner) {
     console.log(config.banner.render());
     if (config.banner.text) {
-      console.log(chalk.dim(config.banner.text));
+      console.log(`\t\t\t       ${chalk.dim(config.banner.text)}`);
     }
-    console.log();
 
     const bannerHeight = config.banner.render().split('\n').length;
     currentLine = bannerHeight + (config.banner.text ? 2 : 1);
@@ -233,7 +273,7 @@ async function promptSteps(config: CommandConfig) {
 
   try {
     for (const step of config.steps) {
-      const answer = await processStep(step, answers); // Pass the entire answers object
+      const answer = await processStep(step, answers);
       if (answer !== null) {
         answers[step.name] = answer;
       }
@@ -268,36 +308,46 @@ function createCommand(program: Command, commandName: string, config: CommandCon
   const command = program.command(commandName);
   command.description(config.description);
 
-  // Add options instead of arguments for all step types
+  // Add project name as an argument
+  command.argument('[name]', 'Project name');
+
+  // Add remaining options
   config.steps.forEach(step => {
-    if (typeof step.type === 'function') {
-      // For dynamic steps, add as options
-      command.option(
-        `--${step.name} <${step.name}>`,
-        step.description || step.message
-      );
-    } else {
-      command.option(
-        `--${step.name} <${step.name}>`,
-        step.description || step.message,
-        step.type === 'select' ? step.choices?.map(c => c.value) : undefined
-      );
+    if (step.name !== 'name') { // Skip name since it's now an argument
+      if (typeof step.type === 'function') {
+        command.option(
+          `--${step.name} <${step.name}>`,
+          step.description || step.message
+        );
+      } else {
+        command.option(
+          `--${step.name} <${step.name}>`,
+          step.description || step.message,
+          step.type === 'select' ? step.choices?.map(c => c.value) : undefined
+        );
+      }
     }
   });
 
-  command.action(async (options) => {
+  command.action(async (name, options) => {
+    // Combine argument and options
+    const combinedOptions = {
+      ...options,
+      name: name || options.name // Prefer argument over option
+    };
+    
     const answers = await promptSteps({
       ...config,
       steps: config.steps.map(step => ({
         ...step,
-        initial: options[step.name]
+        initial: combinedOptions[step.name] || step.initial
       }))
     });
 
     try {
       const handler = await loadCommand(commandName);
       await handler[commandName]({ 
-        ...options, 
+        ...combinedOptions,
         ...answers,
         defaults: false
       });
