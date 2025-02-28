@@ -8,9 +8,13 @@
   ],
   "scripts": {
     "dev": "bun run --cwd apps/web dev",
+    "dev:api": "bun run --cwd apps/api dev",
+    "dev:api:elysia": "bun run --cwd apps/api-elysia dev",
     "build": "bun run build:packages && bun run build:apps",
     "build:packages": "bun run --cwd packages/shared build",
     "build:apps": "bun run --cwd apps/web build && bun run --cwd apps/api build",
+    "build:apps:elysia": "bun run --cwd apps/web build && bun run --cwd apps/api-elysia build",
+    "generate:types": "bun run --cwd apps/api-elysia generate:types",
     "test": "bun test",
     "lint": "biome check .",
     "format": "biome format . --write",

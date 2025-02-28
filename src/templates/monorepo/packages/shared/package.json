@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@elysiajs/eden": "latest",
     "zod": "^3.22.4"
   },
   "devDependencies": {

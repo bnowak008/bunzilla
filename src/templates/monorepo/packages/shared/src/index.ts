@@ -10,3 +10,7 @@ export interface ApiResponse<T> {
 }
 
 export const API_VERSION = '1.0.0';
+
+// Re-export Eden client
+export * from './eden-client';
+export * from './eden-types';

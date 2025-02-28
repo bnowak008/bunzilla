@@ -9,7 +9,8 @@ export const webappFrameworks = [
 export const apiFrameworks = [
   { title: 'Hono', value: 'hono' },
   { title: 'Fastify', value: 'fastify' },
-  { title: 'Express', value: 'express' }
+  { title: 'Express', value: 'express' },
+  { title: 'Elysia', value: 'elysia' }
 ] as const;
 
 export type WebAppFramework = typeof webappFrameworks[number]['value'];
@@ -52,7 +53,7 @@ export type WebAppOptions = {
 };
 
 export type ApiOptions = {
-  framework: 'hono' | 'fastify' | 'express';
+  framework: 'hono' | 'fastify' | 'express' | 'elysia';
 };
 
 export type MonorepoPackage = 'all' | 'frontend' | 'backend' | 'custom';

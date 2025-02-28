@@ -1,0 +1,30 @@
+{
+  "name": "@${projectName}/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "start": "bun run dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "generate:types": "bun run src/scripts/generate-types.ts"
+  },
+  "dependencies": {
+    "@${projectName}/shared": "workspace:*",
+    "elysia": "latest",
+    "@elysiajs/swagger": "latest",
+    "@elysiajs/cors": "latest",
+    "@elysiajs/eden": "latest",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.4.1",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "bun-types": "latest"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+} 
