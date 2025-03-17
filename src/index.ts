@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createCLI } from './utils/cli.js';
-import { projectTypes, webappFrameworks, apiFrameworks } from './types.js';
+import { projectTypes } from './types.js';
 import { getBanner } from './utils/banner.js';
 
 (async () => {
@@ -11,7 +11,7 @@ import { getBanner } from './utils/banner.js';
       commands: {
         create: {
           name: 'create',
-          description: 'Create a new Bun project',
+          description: 'Create a new Bun monorepo with React/Vite frontend, ElysiaJS API, and SQLite with Drizzle',
           banner: {
             render: getBanner,
             text: 'The Ultimate Bun Project Generator',
@@ -29,52 +29,6 @@ import { getBanner } from './utils/banner.js';
                 }
                 return true;
               }
-            },
-            {
-              name: 'type',
-              type: 'select',
-              message: 'Select project type:',
-              description: 'Type of project to create',
-              choices: projectTypes
-            },
-            {
-              name: 'packages',
-              type: 'select',
-              message: 'Select packages to include:',
-              description: 'Packages to include in monorepo',
-              choices: [
-                { title: 'All (Frontend + Backend + Shared)', value: 'all' },
-                { title: 'Frontend Only', value: 'frontend' },
-                { title: 'Backend Only', value: 'backend' },
-                { title: 'Custom Selection', value: 'custom' }
-              ],
-              when: (answers) => answers.type === 'monorepo'
-            },
-            {
-              name: 'frontend',
-              type: 'select',
-              message: 'Select frontend framework:',
-              description: 'Frontend framework to use',
-              choices: webappFrameworks,
-              when: (answers) => 
-                answers.type === 'webapp' || 
-                (answers.type === 'monorepo' && 
-                 (answers.packages === 'all' || 
-                  answers.packages === 'frontend' || 
-                  answers.packages === 'custom'))
-            },
-            {
-              name: 'framework',
-              type: 'select',
-              message: 'Select API framework:',
-              description: 'API framework to use',
-              choices: apiFrameworks,
-              when: (answers) => 
-                answers.type === 'api' || 
-                (answers.type === 'monorepo' && 
-                 (answers.packages === 'all' || 
-                  answers.packages === 'backend' || 
-                  answers.packages === 'custom'))
             }
           ]
         },

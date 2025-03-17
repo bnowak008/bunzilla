@@ -13,62 +13,31 @@ import type { CreateOptions } from '../../types';
 export async function create(options: CreateOptions): Promise<void> {
   try {
     const validatedOptions = createOptionsSchema.parse(options);
-    const { name, type } = validatedOptions;
+    const { name } = validatedOptions;
 
-    if (!name || !type) {
+    if (!name) {
       throw new BunzillaError(
         ErrorCode.INVALID_OPTIONS,
-        'Project name and type are required'
+        'Project name is required'
       );
     }
 
-    const spinner = ora('Creating your project...').start();
+    const spinner = ora('Creating your Bun monorepo project...').start();
 
     try {
-      // Handle different project types
-      switch (type) {
-        case 'webapp': {
-          if (!options.frontend) {
-            throw new BunzillaError(
-              ErrorCode.INVALID_OPTIONS,
-              'Frontend framework must be selected for webapp projects'
-            );
-          }
-          const templatePath = `webapp-${options.frontend}`;
-          await processTemplate(templatePath, name);
-          break;
-        }
-        case 'api': {
-          const templatePath = options.framework 
-            ? `api-${options.framework}`
-            : 'api';
-          await processTemplate(templatePath, name);
-          break;
-        }
-        case 'monorepo': {
-          // Create base monorepo structure
-          await processTemplate('monorepo', name);
-          
-          // Set default frameworks if not explicitly chosen
-          const frontend = options.frontend || 'react';
-          const framework = options.framework || 'hono';
-          
-          // Process selected packages
-          if (options.packages === 'all') {
-            await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
-            await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
-            // Create shared package using utility template
-            await processTemplate('utility', join(process.cwd(), name, 'packages/shared'));
-          } else if (options.packages === 'frontend') {
-            await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
-          } else if (options.packages === 'backend') {
-            await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
-          }
-          break;
-        }
-        default:
-          await processTemplate(type, name);
-      }
+      // Create base monorepo structure
+      await processTemplate('monorepo', name);
+      
+      // Use hardcoded stack: React frontend, ElysiaJS API, SQLite with Drizzle
+      const frontend = 'react';  // Always use React
+      const framework = 'elysia'; // Always use ElysiaJS
+
+      // Create all packages with our preferred stack
+      await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
+      await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
+      
+      // Create shared package
+      await processTemplate('utility', join(process.cwd(), name, 'packages/shared'));
 
       spinner.succeed(chalk.green(`Successfully created ${chalk.bold(name)}`));
 
@@ -84,6 +53,12 @@ export async function create(options: CreateOptions): Promise<void> {
       console.log(`   ${chalk.yellow('bun install')}         ${chalk.dim('Install dependencies')}`);
       console.log(`   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start development server')}`);
       console.log(`   ${chalk.yellow('bun run build')}       ${chalk.dim('Build for production')}`);
+      
+      // Show additional info about the stack
+      console.log('\n' + chalk.cyan('🚀 Stack information:'));
+      console.log(`   ${chalk.bold('Frontend:')} React with Vite`);
+      console.log(`   ${chalk.bold('Backend:')} ElysiaJS`);
+      console.log(`   ${chalk.bold('Database:')} SQLite with Drizzle ORM`);
     } catch (error) {
       spinner.fail(chalk.red('Failed to create project'));
       throw error;
