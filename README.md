@@ -23,158 +23,94 @@ bunzilla create my-awesome-app
 # Navigate to your project
 cd my-awesome-app
 
+# Install dependencies
+bun install
+
+# Set up the database
+bun run db:generate
+bun run db:push
+
 # Start development
-bun dev
+bun run dev
 ```
 
 ## 📦 Available Commands
 
 ### Create Project
 ```bash
-bunzilla create [options]
+bunzilla create [name]
 
-Options:
-  --name <name>     Project name
-  --type <type>     Project type (utility|webapp|api|monorepo|cli)
-  --frontend <fw>   Frontend framework for webapp (react|solid|svelte)
-  --framework <fw>  API framework (hono|fastify|express)
-  --defaults        Skip prompts and use defaults
+Arguments:
+  name          Project name (will prompt if not provided)
 ```
 
-By default, running `bunzilla create` without options starts an interactive CLI that guides you through project creation:
+Running `bunzilla create` will create a standardized monorepo with:
+- React/Vite frontend
+- ElysiaJS API
+- SQLite database with Drizzle ORM
 
 ```bash
-# Interactive mode (recommended)
-bunzilla create
+# Create a project
+bunzilla create my-app
 
-# Will prompt you to:
-# 1. Enter project name
-# 2. Select project type
-# 3. Choose framework/platform based on type:
-#    - Webapp: React, Solid, or Svelte
-#    - API: Hono, Fastify, or Express
-#    - Monorepo: Select initial packages
+# Will create a monorepo with:
+# 1. React/Vite frontend in apps/web
+# 2. ElysiaJS API in apps/api with SQLite/Drizzle
+# 3. Shared package in packages/shared
 ```
 
-Use the `--defaults` flag to skip prompts and use configured defaults:
+## 🛠 Tech Stack
 
-```bash
-# Non-interactive mode with defaults
-bunzilla create my-app --type webapp --defaults  # Uses default frontend (React)
-bunzilla create my-api --type api --defaults     # Uses default framework (Hono)
-```
-
-### Evolve Project
-```bash
-bunzilla evolve [options]
-
-Options:
-  --add <feature>    Add features (cli|frontend|api)
-  --convert <type>   Convert to different project type
-  --project-dir <dir> Target project directory
-```
-
-### Manage Configuration
-```bash
-bunzilla config [options]
-
-Options:
-  --get <key>       Get config value
-  --set <key> <value> Set config value
-  --list            List all config values
-  --delete <key>    Delete config value
-```
-
-## 🎨 Project Types
-
-### Utility Package
-- TypeScript configuration
-- Testing with Vitest
-- Linting with Biome
-- Build configuration
-- NPM publishing setup
-
-### Web Application
-- React, Solid, or Svelte
-- TailwindCSS for styling
-- React Router for navigation
-- React Query for data fetching
+### Frontend (apps/web)
+- React with TypeScript
 - Vite for fast development
+- TailwindCSS for styling
+- Type-safe API communication
 
-### API Service
-- Hono, Fastify, or Express
-- OpenAPI documentation
-- JWT authentication
-- Database integration with Drizzle
-- End-to-end type safety
+### Backend (apps/api)
+- ElysiaJS for API development
+- SQLite database
+- Drizzle ORM for type-safe database operations
+- Swagger UI for API documentation
 
-### CLI Tool
-- Interactive command-line interface
-- Configuration management
-- Update notifications
-- Progress spinners
-- Colorful output
+### Shared (packages/shared)
+- Common types and utilities
+- Shared between frontend and backend
 
-### Monorepo
-- Workspace management
-- Shared configurations
-- Independent versioning
-- Build pipeline
-- Cross-package testing
+## 🔧 Project Structure
+
+```
+├── apps/
+│   ├── api/          # ElysiaJS API with SQLite/Drizzle
+│   └── web/          # React/Vite frontend
+├── packages/
+│   └── shared/       # Shared utilities and types
+└── package.json
+```
 
 ## 🛠 Development Scripts
 
-All projects include these common scripts:
+The monorepo includes these helpful scripts:
 
 ```bash
-bun run dev        # Start development
-bun run build      # Build for production
-bun run test       # Run tests
-bun run lint       # Run linter
-bun run format     # Format code
-bun run typecheck  # Type check
+# Root level
+bun run dev           # Start all development servers
+bun run build         # Build all packages and applications
+bun run db:generate   # Generate database schema
+bun run db:push       # Push schema to database
+bun run db:studio     # Open Drizzle Studio
+bun run setup         # Install dependencies and set up database
+
+# Frontend (in apps/web directory)
+bun run --cwd apps/web dev       # Start frontend server
+
+# Backend (in apps/api directory)
+bun run --cwd apps/api dev       # Start API server
 ```
 
 ## 🔧 Configuration
 
-Bunzilla stores global configuration in `~/.bunzilla/config.json`. Default values:
-
-```json
-{
-  "defaultTemplate": "utility",
-  "defaultFramework": "hono",
-  "defaultFrontend": "react"
-}
-```
-
-## 🔄 Evolution Paths
-
-### Utility → CLI
-Start with a simple utility package and evolve it into a CLI tool:
-```bash
-# Create a utility package
-bunzilla create my-package --type utility
-
-# Later, add CLI capabilities
-bunzilla evolve --add cli --project-dir my-package
-```
-
-### API → Full Stack
-Begin with a backend API and gradually add frontend components:
-```bash
-# Create an API service
-bunzilla create my-api --type api --framework hono
-
-# Later, add frontend
-bunzilla evolve --add frontend --project-dir my-api
-```
-
-### Single Package → Monorepo
-Scale any project to a monorepo structure when needed:
-```bash
-# Convert existing project to monorepo
-bunzilla evolve --convert monorepo --project-dir my-project
-```
+Bunzilla uses a simplified approach with an opinionated project structure.
 
 ## 🤝 Contributing
 

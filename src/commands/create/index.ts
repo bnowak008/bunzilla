@@ -25,19 +25,12 @@ export async function create(options: CreateOptions): Promise<void> {
     const spinner = ora('Creating your Bun monorepo project...').start();
 
     try {
-      // Create base monorepo structure
+      // Check if project name would create a path within the template directories
+      const projectDir = join(process.cwd(), name);
+      logger.debug(`Creating project at: ${projectDir}`);
+      
+      // Create monorepo with all the required components
       await processTemplate('monorepo', name);
-      
-      // Use hardcoded stack: React frontend, ElysiaJS API, SQLite with Drizzle
-      const frontend = 'react';  // Always use React
-      const framework = 'elysia'; // Always use ElysiaJS
-
-      // Create all packages with our preferred stack
-      await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
-      await processTemplate(`api-${framework}`, join(process.cwd(), name, 'apps/api'));
-      
-      // Create shared package
-      await processTemplate('utility', join(process.cwd(), name, 'packages/shared'));
 
       spinner.succeed(chalk.green(`Successfully created ${chalk.bold(name)}`));
 
@@ -51,7 +44,8 @@ export async function create(options: CreateOptions): Promise<void> {
       // Show available scripts
       console.log(chalk.cyan('🔧 Available scripts:'));
       console.log(`   ${chalk.yellow('bun install')}         ${chalk.dim('Install dependencies')}`);
-      console.log(`   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start development server')}`);
+      console.log(`   ${chalk.yellow('bun run setup')}       ${chalk.dim('Install dependencies and set up database')}`);
+      console.log(`   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start all development servers')}`);
       console.log(`   ${chalk.yellow('bun run build')}       ${chalk.dim('Build for production')}`);
       
       // Show additional info about the stack

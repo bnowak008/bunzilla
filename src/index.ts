@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { createCLI } from './utils/cli.js';
-import { projectTypes } from './types.js';
 import { getBanner } from './utils/banner.js';
 
 (async () => {
@@ -29,49 +28,6 @@ import { getBanner } from './utils/banner.js';
                 }
                 return true;
               }
-            }
-          ]
-        },
-        evolve: {
-          name: 'evolve',
-          description: 'Add features to an existing project',
-          banner: {
-            render: getBanner,
-            text: 'The Ultimate Bun Project Generator',
-            responsive: true
-          },
-          steps: [
-            {
-              name: 'feature',
-              type: 'select',
-              message: 'Select feature to add:',
-              description: 'Feature to add to the project',
-              choices: [
-                { title: 'Add CLI Interface', value: 'cli' },
-                { title: 'Add Frontend', value: 'frontend' },
-                { title: 'Add API', value: 'api' }
-              ]
-            }
-          ]
-        },
-        config: {
-          name: 'config',
-          description: 'View or edit global configurations',
-          banner: {
-            render: getBanner,
-            text: 'The Ultimate Bun Project Generator',
-            responsive: true
-          },
-          steps: [
-            {
-              name: 'action',
-              type: 'select',
-              message: 'Select configuration action:',
-              description: 'Configuration action to perform',
-              choices: [
-                { title: 'View Current Config', value: 'view' },
-                { title: 'Edit Config', value: 'edit' }
-              ]
             }
           ]
         }

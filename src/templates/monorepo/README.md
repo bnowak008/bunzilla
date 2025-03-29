@@ -1,13 +1,20 @@
 # ${projectName}
 
-A modern monorepo project created with Bunzilla.
+A modern monorepo project created with Bunzilla, using a fully integrated Bun stack.
+
+## Tech Stack
+
+- **Frontend**: React with Vite
+- **Backend**: ElysiaJS API
+- **Database**: SQLite with Drizzle ORM
+- **Package Manager**: Bun
 
 ## Project Structure
 
 ```
 ├── apps/
-│   ├── api/          # Backend API
-│   └── web/          # Frontend application
+│   ├── client/          # React/Vite frontend
+│   └── server/          # ElysiaJS API with SQLite/Drizzle
 ├── packages/
 │   └── shared/       # Shared utilities and types
 └── package.json
@@ -20,20 +27,34 @@ A modern monorepo project created with Bunzilla.
    bun install
    ```
 
-2. Start development servers:
+2. Set up the database:
+   ```bash
+   # Generate database schema
+   bun run --cwd apps/server db:generate
+
+   # Push schema to database
+   bun run --cwd apps/server db:push
+   ```
+
+3. Start development servers:
    ```bash
    # Start frontend
-   bun run dev
+   bun run --cwd apps/client dev
 
    # Start backend (in another terminal)
-   bun run --cwd apps/api dev
+   bun run --cwd apps/server dev
    ```
+
+## Features
+
+- **Type-Safe Database**: Drizzle ORM for type-safe database operations
+- **API Documentation**: Swagger UI for API documentation
+- **Shared Types**: Common types shared between frontend and backend
+- **Hot Module Reloading**: Fast development with HMR
 
 ## Development
 
-- `bun run dev`: Start the frontend development server
+- `bun run dev`: Start all development servers
 - `bun run build`: Build all packages and applications
-- `bun run test`: Run tests across all packages
-- `bun run lint`: Run linter
-- `bun run format`: Format code
+- `bun run --cwd apps/server db:studio`: Open Drizzle Studio to manage your database
 - `bun run typecheck`: Type check all packages

@@ -1,6 +1,7 @@
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
 import { swagger } from '@elysiajs/swagger';
+import { API_VERSION } from '@${projectName}/shared';
 import { db } from './db';
 
 // Create main app
@@ -12,7 +13,7 @@ const app = new Elysia()
       documentation: {
         info: {
           title: '${projectName} API',
-          version: '1.0.0',
+          version: API_VERSION,
         },
       },
     })
@@ -21,7 +22,7 @@ const app = new Elysia()
   // Root route
   .get('/', () => ({
     message: 'Welcome to ${projectName} API',
-    version: '1.0.0',
+    version: API_VERSION,
   }))
 
   // Example routes with database
@@ -52,4 +53,4 @@ const app = new Elysia()
 
 console.log(
   `🦊 ${app.server?.hostname}:${app.server?.port} - Server is running`
-); 
+);

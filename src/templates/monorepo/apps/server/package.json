@@ -1,0 +1,28 @@
+{
+  "name": "@${projectName}/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist",
+    "start": "bun run dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "db:push": "bun run drizzle-kit push:sqlite",
+    "db:studio": "bun run drizzle-kit studio",
+    "db:generate": "bun run drizzle-kit generate:sqlite"
+  },
+  "dependencies": {
+    "@${projectName}/shared": "workspace:*",
+    "@elysiajs/cors": "^0.8.0",
+    "@elysiajs/swagger": "^0.8.0",
+    "drizzle-orm": "^0.29.3",
+    "elysia": "^0.8.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.5",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.20.13",
+    "typescript": "^5.3.3"
+  }
+}

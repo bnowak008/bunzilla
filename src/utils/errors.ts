@@ -3,6 +3,7 @@ export enum ErrorCode {
   TEMPLATE_NOT_FOUND = 'TEMPLATE_NOT_FOUND',
   PROCESSING_FAILED = 'PROCESSING_FAILED',
   FILE_SYSTEM_ERROR = 'FILE_SYSTEM_ERROR',
+  INVALID_PATH = 'INVALID_PATH',
 }
 
 export class BunzillaError extends Error {

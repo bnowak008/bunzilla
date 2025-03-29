@@ -104,26 +104,53 @@ export async function processTemplate(
   templateType: string,
   projectName: string,
 ): Promise<void> {
-  const templatePath = getTemplatePath(templateType as ProjectType);
+  const templatesDir = getTemplatesDir();
+  const templatePath = join(templatesDir, templateType);
   const projectPath = join(process.cwd(), projectName);
+
+  // Log paths for debugging
+  logger.debug(`Template directory: ${templatesDir}`);
+  logger.debug(`Full template path: ${templatePath}`);
+  logger.debug(`Project path: ${projectPath}`);
 
   // Ensure template exists
   if (!existsSync(templatePath)) {
     throw new BunzillaError(
       ErrorCode.TEMPLATE_NOT_FOUND,
-      `Template ${templateType} not found`
+      `Template ${templateType} not found at ${templatePath}`
+    );
+  }
+
+  // Safety check to prevent recursive copying
+  if (projectPath.includes(templatePath) || templatePath.includes(projectPath)) {
+    throw new BunzillaError(
+      ErrorCode.INVALID_PATH,
+      `Cannot create project within template directory or vice versa. Project: ${projectPath}, Template: ${templatePath}`
     );
   }
 
   // Create project directory
   await mkdir(projectPath, { recursive: true });
 
-  // Copy template files
-  await copy(templatePath, projectPath);
+  try {
+    // Copy template files with error handling
+    logger.debug(`Copying from ${templatePath} to ${projectPath}`);
+    await copy(templatePath, projectPath, { 
+      overwrite: false,
+      errorOnExist: false
+    });
 
-  // Process template variables
-  await processTemplateFiles(projectPath, {
-    projectName,
-    templateType,
-  });
+    // Process template variables
+    await processTemplateFiles(projectPath, {
+      projectName,
+      templateType,
+    });
+  } catch (error) {
+    logger.error(`Error processing template: ${error instanceof Error ? error.message : String(error)}`);
+    throw new BunzillaError(
+      ErrorCode.PROCESSING_FAILED,
+      `Failed to process template: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error
+    );
+  }
 } 
