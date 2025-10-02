@@ -1,5 +1,5 @@
-import inquirer from 'inquirer';
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import ora from 'ora';
 import { getConfig } from '../utils/config';
 

@@ -2,18 +2,15 @@
 import { Command } from 'commander';
 import updateNotifier from 'update-notifier';
 import { version } from '../package.json';
-import { initCommand } from './commands/init';
 import { configCommand } from './commands/config';
+import { initCommand } from './commands/init';
 
 // Check for updates
 updateNotifier({ pkg: { name: '${projectName}', version } }).notify();
 
 const program = new Command();
 
-program
-  .name('${projectName}')
-  .description('A modern command-line tool')
-  .version(version);
+program.name('${projectName}').description('A modern command-line tool').version(version);
 
 // Register commands
 program

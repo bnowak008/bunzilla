@@ -1,7 +1,7 @@
+import { Route, Routes } from '@solidjs/router';
 import type { Component } from 'solid-js';
-import { Routes, Route } from '@solidjs/router';
-import { Home } from './pages/Home';
 import { About } from './pages/About';
+import { Home } from './pages/Home';
 
 export const App: Component = () => {
   return (
@@ -13,8 +13,12 @@ export const App: Component = () => {
               <span class="text-xl font-bold">My App</span>
             </a>
             <div class="flex items-center space-x-4">
-              <a href="/" class="text-gray-700 hover:text-gray-900">Home</a>
-              <a href="/about" class="text-gray-700 hover:text-gray-900">About</a>
+              <a href="/" class="text-gray-700 hover:text-gray-900">
+                Home
+              </a>
+              <a href="/about" class="text-gray-700 hover:text-gray-900">
+                About
+              </a>
             </div>
           </div>
         </div>
@@ -27,4 +31,4 @@ export const App: Component = () => {
       </main>
     </div>
   );
-}; 
+};

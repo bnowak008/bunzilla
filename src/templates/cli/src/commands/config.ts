@@ -16,7 +16,7 @@ export function configCommand(options: ConfigOptions) {
       const allConfig = config.store;
       console.log(chalk.bold('\nCurrent configuration:\n'));
       Object.entries(allConfig).forEach(([key, value]) => {
-        console.log(chalk.cyan(key + ':'), value);
+        console.log(chalk.cyan(`${key}:`), value);
       });
       return;
     }

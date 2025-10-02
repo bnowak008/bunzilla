@@ -1,7 +1,7 @@
-import { beforeEach, afterEach, vi } from 'vitest';
 import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, vi } from 'vitest';
 
 let tempDir: string;
 
@@ -21,4 +21,4 @@ afterEach(async () => {
 });
 
 // Set up environment variables
-process.env.NODE_ENV = 'test'; 
+process.env.NODE_ENV = 'test';

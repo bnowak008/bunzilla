@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import { initCommand } from '../src/commands/init';
 import inquirer from 'inquirer';
+import { describe, expect, it, vi } from 'vitest';
+import { initCommand } from '../src/commands/init';
 
 vi.mock('inquirer');
 

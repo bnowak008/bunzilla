@@ -1,8 +1,8 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '../config/db';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
 
 const route = new OpenAPIHono();
 

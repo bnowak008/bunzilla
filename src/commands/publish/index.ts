@@ -1,9 +1,9 @@
-import { join } from 'node:path';
-import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { PublishOptions } from './types';
+import type { PublishOptions } from './types';
 
 export * from './types';
 
@@ -62,8 +62,10 @@ export async function publish(options: PublishOptions): Promise<void> {
       execSync('npm publish --access public', { cwd: projectPath, stdio: 'pipe' });
     }
 
-    spinner.succeed(chalk.green(`Project ${options.dryRun ? 'ready to publish' : 'published successfully'}`));
-    
+    spinner.succeed(
+      chalk.green(`Project ${options.dryRun ? 'ready to publish' : 'published successfully'}`)
+    );
+
     if (options.dryRun) {
       console.log('\nTo publish:');
       console.log(chalk.cyan('  npm publish --access public'));
@@ -72,4 +74,4 @@ export async function publish(options: PublishOptions): Promise<void> {
     spinner.fail(chalk.red('Failed to publish project'));
     throw error;
   }
-} 
+}

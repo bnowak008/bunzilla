@@ -1,11 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { configCommand } from '../src/commands/config';
 import { getConfig } from '../src/utils/config';
 
 describe('Config Command', () => {
   it('should set and get config value', () => {
     const config = getConfig();
-    
+
     // Set value
     configCommand({ set: 'testKey testValue' });
     expect(config.get('testKey')).toBe('testValue');
@@ -20,7 +20,7 @@ describe('Config Command', () => {
 
   it('should delete config value', () => {
     const config = getConfig();
-    
+
     // Set and then delete value
     config.set('testKey', 'testValue');
     configCommand({ delete: 'testKey' });

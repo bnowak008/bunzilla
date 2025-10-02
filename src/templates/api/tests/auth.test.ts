@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { app } from '../src';
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { app } from '../src';
 
 describe('Auth Routes', () => {
   let server: any;
@@ -14,12 +14,10 @@ describe('Auth Routes', () => {
   });
 
   it('should login user', async () => {
-    const res = await request(server)
-      .post('/api/auth/login')
-      .send({
-        email: 'test@example.com',
-        password: 'password123',
-      });
+    const res = await request(server).post('/api/auth/login').send({
+      email: 'test@example.com',
+      password: 'password123',
+    });
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');

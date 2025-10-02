@@ -1,11 +1,10 @@
-import { join, dirname } from 'node:path';
-import { readdir, stat, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { copy } from 'fs-extra';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ProjectType } from '../types.js';
-import { logger } from './logger.js';
-import { ErrorCode, BunzillaError } from './errors.js';
+import { copy } from 'fs-extra';
+import type { ProjectType } from '../types.js';
+import { BunzillaError, ErrorCode } from './errors.js';
 
 type TemplateVariables = Record<string, string>;
 
@@ -17,7 +16,7 @@ function getRootDir(): string {
   while (rootDir && !rootDir.endsWith('dist') && !rootDir.endsWith('src')) {
     rootDir = dirname(rootDir);
   }
-  
+
   // Go up one more level to get to project root if we're in src
   if (rootDir.endsWith('src')) {
     rootDir = dirname(rootDir);
@@ -50,13 +49,13 @@ export function getTemplatePath(templateType: ProjectType | string): string {
 
 async function getAllFiles(dir: string): Promise<string[]> {
   const files: string[] = [];
-  
+
   async function scan(directory: string, baseDir: string) {
     const entries = await readdir(directory);
     for (const entry of entries) {
       const fullPath = join(directory, entry);
       const stats = await stat(fullPath);
-      
+
       if (stats.isDirectory()) {
         await scan(fullPath, baseDir);
       } else {
@@ -75,15 +74,13 @@ function processFileContent(content: string, variables: TemplateVariables): stri
   if (content.startsWith('---')) {
     // Handle frontmatter separately
     const [frontmatter, ...rest] = content.split('---');
-    const processedContent = rest.join('---').replace(/\$\{([^}]+)\}/g, (_, key) => 
-      variables[key] || ''
-    );
+    const processedContent = rest
+      .join('---')
+      .replace(/\$\{([^}]+)\}/g, (_, key) => variables[key] || '');
     return `---${frontmatter}---${processedContent}`;
   }
 
-  return content.replace(/\$\{([^}]+)\}/g, (_, key) => 
-    variables[key] || ''
-  );
+  return content.replace(/\$\{([^}]+)\}/g, (_, key) => variables[key] || '');
 }
 
 async function processTemplateFiles(
@@ -91,7 +88,7 @@ async function processTemplateFiles(
   variables: Record<string, string>
 ): Promise<void> {
   const files = await getAllFiles(projectPath);
-  
+
   for (const file of files) {
     const filePath = join(projectPath, file);
     const content = await readFile(filePath, 'utf-8');
@@ -100,19 +97,13 @@ async function processTemplateFiles(
   }
 }
 
-export async function processTemplate(
-  templateType: string,
-  projectName: string,
-): Promise<void> {
+export async function processTemplate(templateType: string, projectName: string): Promise<void> {
   const templatePath = getTemplatePath(templateType as ProjectType);
   const projectPath = join(process.cwd(), projectName);
 
   // Ensure template exists
   if (!existsSync(templatePath)) {
-    throw new BunzillaError(
-      ErrorCode.TEMPLATE_NOT_FOUND,
-      `Template ${templateType} not found`
-    );
+    throw new BunzillaError(ErrorCode.TEMPLATE_NOT_FOUND, `Template ${templateType} not found`);
   }
 
   // Create project directory
@@ -126,4 +117,4 @@ export async function processTemplate(
     projectName,
     templateType,
   });
-} 
+}

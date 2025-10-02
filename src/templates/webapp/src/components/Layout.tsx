@@ -1,4 +1,4 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 
 export function Layout() {
   return (
@@ -11,10 +11,7 @@ export function Layout() {
                 <span className="text-xl font-bold">${projectName}</span>
               </Link>
               <div className="ml-10 flex items-center space-x-4">
-                <Link
-                  to="/"
-                  className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md"
-                >
+                <Link to="/" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md">
                   Home
                 </Link>
                 <Link

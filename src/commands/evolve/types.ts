@@ -4,4 +4,4 @@ export interface EvolveOptions {
   projectDir: string;
   add?: ProjectType[];
   convert?: ProjectType;
-} 
+}

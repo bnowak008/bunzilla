@@ -1,6 +1,6 @@
-import { render } from 'solid-js/web';
 import { Router } from '@solidjs/router';
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
+import { render } from 'solid-js/web';
 import { App } from './App';
 import './index.css';
 
@@ -15,4 +15,4 @@ render(
     </Router>
   ),
   document.getElementById('root')!
-); 
+);

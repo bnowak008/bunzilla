@@ -1,7 +1,6 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { mkdirSync } from 'node:fs';
-import { Config, DEFAULT_CONFIG } from './types';
+import { type Config, DEFAULT_CONFIG } from './types';
 
 class ConfigManager {
   private config: Config;
@@ -12,15 +11,15 @@ class ConfigManager {
     if (!homeDir) {
       throw new Error('Could not find home directory');
     }
-    
+
     const configDir = join(homeDir, '.bunzilla');
     this.configPath = join(configDir, 'config.json');
-    
+
     // Ensure config directory exists
     if (!existsSync(configDir)) {
       mkdirSync(configDir, { recursive: true });
     }
-    
+
     // Load or create config
     this.config = this.loadConfig();
   }
@@ -72,4 +71,4 @@ export function getConfig(): ConfigManager {
     configInstance = new ConfigManager();
   }
   return configInstance;
-} 
+}

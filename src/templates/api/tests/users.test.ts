@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { app } from '../src';
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { app } from '../src';
 
 describe('User Routes', () => {
   let server: any;
@@ -14,13 +14,11 @@ describe('User Routes', () => {
   });
 
   it('should create user', async () => {
-    const res = await request(server)
-      .post('/api/users')
-      .send({
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User',
-      });
+    const res = await request(server).post('/api/users').send({
+      email: 'test@example.com',
+      password: 'password123',
+      name: 'Test User',
+    });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('id');
@@ -30,13 +28,11 @@ describe('User Routes', () => {
 
   it('should get user by id', async () => {
     // First create a user
-    const createRes = await request(server)
-      .post('/api/users')
-      .send({
-        email: 'get@example.com',
-        password: 'password123',
-        name: 'Get User',
-      });
+    const createRes = await request(server).post('/api/users').send({
+      email: 'get@example.com',
+      password: 'password123',
+      name: 'Get User',
+    });
 
     const userId = createRes.body.id;
 

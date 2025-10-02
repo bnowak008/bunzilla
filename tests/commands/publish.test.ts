@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { join } from 'node:path';
 import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { publish } from '../../src/commands/publish';
-import { createTempDir, cleanupTempDir } from '../utils/test-helpers';
+import { cleanupTempDir, createTempDir } from '../utils/test-helpers';
 
 describe('Publish Command', () => {
   let tempDir: string;
@@ -22,8 +22,10 @@ describe('Publish Command', () => {
   });
 
   it('should publish project', async () => {
-    await expect(publish({
-      projectDir: 'test-project',
-    })).resolves.not.toThrow();
+    await expect(
+      publish({
+        projectDir: 'test-project',
+      })
+    ).resolves.not.toThrow();
   });
-}); 
+});

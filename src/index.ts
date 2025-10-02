@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { createCLI } from './utils/cli.js';
-import { projectTypes, webappFrameworks, apiFrameworks } from './types.js';
+import { apiFrameworks, projectTypes, webappFrameworks } from './types.js';
 import { getBanner } from './utils/banner.js';
+import { createCLI } from './utils/cli.js';
 
 (async () => {
   try {
@@ -15,7 +15,7 @@ import { getBanner } from './utils/banner.js';
           banner: {
             render: getBanner,
             text: 'The Ultimate Bun Project Generator',
-            responsive: true
+            responsive: true,
           },
           steps: [
             {
@@ -28,14 +28,14 @@ import { getBanner } from './utils/banner.js';
                   return 'Project name must be lowercase, start and end with alphanumeric characters, and may contain hyphens in between';
                 }
                 return true;
-              }
+              },
             },
             {
               name: 'type',
               type: 'select',
               message: 'Select project type:',
               description: 'Type of project to create',
-              choices: projectTypes
+              choices: projectTypes,
             },
             {
               name: 'packages',
@@ -46,9 +46,9 @@ import { getBanner } from './utils/banner.js';
                 { title: 'All (Frontend + Backend + Shared)', value: 'all' },
                 { title: 'Frontend Only', value: 'frontend' },
                 { title: 'Backend Only', value: 'backend' },
-                { title: 'Custom Selection', value: 'custom' }
+                { title: 'Custom Selection', value: 'custom' },
               ],
-              when: (answers) => answers.type === 'monorepo'
+              when: (answers) => answers.type === 'monorepo',
             },
             {
               name: 'frontend',
@@ -56,12 +56,12 @@ import { getBanner } from './utils/banner.js';
               message: 'Select frontend framework:',
               description: 'Frontend framework to use',
               choices: webappFrameworks,
-              when: (answers) => 
-                answers.type === 'webapp' || 
-                (answers.type === 'monorepo' && 
-                 (answers.packages === 'all' || 
-                  answers.packages === 'frontend' || 
-                  answers.packages === 'custom'))
+              when: (answers) =>
+                answers.type === 'webapp' ||
+                (answers.type === 'monorepo' &&
+                  (answers.packages === 'all' ||
+                    answers.packages === 'frontend' ||
+                    answers.packages === 'custom')),
             },
             {
               name: 'framework',
@@ -69,14 +69,14 @@ import { getBanner } from './utils/banner.js';
               message: 'Select API framework:',
               description: 'API framework to use',
               choices: apiFrameworks,
-              when: (answers) => 
-                answers.type === 'api' || 
-                (answers.type === 'monorepo' && 
-                 (answers.packages === 'all' || 
-                  answers.packages === 'backend' || 
-                  answers.packages === 'custom'))
-            }
-          ]
+              when: (answers) =>
+                answers.type === 'api' ||
+                (answers.type === 'monorepo' &&
+                  (answers.packages === 'all' ||
+                    answers.packages === 'backend' ||
+                    answers.packages === 'custom')),
+            },
+          ],
         },
         evolve: {
           name: 'evolve',
@@ -84,7 +84,7 @@ import { getBanner } from './utils/banner.js';
           banner: {
             render: getBanner,
             text: 'The Ultimate Bun Project Generator',
-            responsive: true
+            responsive: true,
           },
           steps: [
             {
@@ -95,10 +95,10 @@ import { getBanner } from './utils/banner.js';
               choices: [
                 { title: 'Add CLI Interface', value: 'cli' },
                 { title: 'Add Frontend', value: 'frontend' },
-                { title: 'Add API', value: 'api' }
-              ]
-            }
-          ]
+                { title: 'Add API', value: 'api' },
+              ],
+            },
+          ],
         },
         config: {
           name: 'config',
@@ -106,7 +106,7 @@ import { getBanner } from './utils/banner.js';
           banner: {
             render: getBanner,
             text: 'The Ultimate Bun Project Generator',
-            responsive: true
+            responsive: true,
           },
           steps: [
             {
@@ -116,12 +116,12 @@ import { getBanner } from './utils/banner.js';
               description: 'Configuration action to perform',
               choices: [
                 { title: 'View Current Config', value: 'view' },
-                { title: 'Edit Config', value: 'edit' }
-              ]
-            }
-          ]
-        }
-      }
+                { title: 'Edit Config', value: 'edit' },
+              ],
+            },
+          ],
+        },
+      },
     });
 
     await cli.run();

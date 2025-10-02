@@ -1,8 +1,8 @@
 import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { vi } from 'vitest';
-import { ProjectType } from '../../src/types';
+import type { ProjectType } from '../../src/types';
 
 export async function createTempDir(): Promise<string> {
   return await mkdtemp(join(tmpdir(), 'bunzilla-test-'));
@@ -31,4 +31,4 @@ vi.mock('../../src/utils/template-manager', () => {
       }
     },
   };
-}); 
+});

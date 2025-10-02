@@ -2,7 +2,7 @@ import './styles/global.css';
 
 function init() {
   const app = document.querySelector<HTMLDivElement>('#app')!;
-  
+
   app.innerHTML = `
     <div class="min-h-screen bg-gray-50">
       <main class="container mx-auto px-4 py-8">
@@ -15,4 +15,4 @@ function init() {
   `;
 }
 
-init(); 
+init();
