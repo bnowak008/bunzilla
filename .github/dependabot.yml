@@ -25,6 +25,13 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
 
+  # Template: webapp (base)
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
   # Template: webapp-react
   - package-ecosystem: "npm"
     directory: "/src/templates/webapp-react"
@@ -56,6 +63,13 @@ updates:
   # Template: webapp-ts
   - package-ecosystem: "npm"
     directory: "/src/templates/webapp-ts"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: api (base)
+  - package-ecosystem: "npm"
+    directory: "/src/templates/api"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
