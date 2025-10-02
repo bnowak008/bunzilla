@@ -1,15 +1,13 @@
+import { dirname, join } from 'node:path';
 import { createInterface } from 'node:readline';
+import { fileURLToPath } from 'node:url';
 import chalk from 'chalk';
 import { Command } from 'commander';
-import { getBanner } from './banner.js';
-import type { ProjectType } from '../types.js';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 type Choice<T = string> = {
   readonly title: string;
   readonly value: T;
-}
+};
 
 type BaseStep<T = any> = {
   name: string;
@@ -18,32 +16,32 @@ type BaseStep<T = any> = {
   validate?: (input: string) => boolean | string;
   transform?: (input: string) => T;
   initial?: T;
-}
+};
 
 type TextStep = BaseStep & {
   type: 'text';
-}
+};
 
 type SelectStep = BaseStep & {
   type: 'select';
   choices: readonly Choice[];
-}
+};
 
 type ConfirmStep = BaseStep & {
   type: 'confirm';
-}
+};
 
-type StepConfig = 
+type StepConfig =
   | ({ type: 'text'; initial?: string } & BaseStep)
-  | ({ 
-      type: 'select'; 
-      initial?: string; 
+  | ({
+      type: 'select';
+      initial?: string;
       choices: readonly Choice[];
       when?: (answers: Record<string, any>) => boolean;
     } & BaseStep)
   | ({ type: 'confirm'; initial?: boolean } & BaseStep)
-  | ({ 
-      type: ((prev: any) => 'text' | 'select' | 'confirm' | null);
+  | ({
+      type: (prev: any) => 'text' | 'select' | 'confirm' | null;
       choices?: readonly Choice[];
     } & Omit<BaseStep, 'transform'>);
 
@@ -56,28 +54,32 @@ type CommandConfig = {
     responsive?: boolean;
   };
   steps: StepConfig[];
-}
+};
 
 type CLIConfig = {
   name: string;
   version: string;
   commands: Record<string, CommandConfig>;
-}
+};
 
 // Track the current cursor position
-let currentLine = 0;
+let _currentLine = 0;
 
 // Input utilities
-async function text(message: string, initial?: string, validate?: (input: string) => boolean | string): Promise<string> {
+async function text(
+  message: string,
+  initial?: string,
+  validate?: (input: string) => boolean | string
+): Promise<string> {
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   // Display the initial prompt with the default value if provided
   const promptText = chalk.cyan('? ') + message + (initial ? chalk.dim(` (${initial})`) : '');
   console.log(promptText);
-  currentLine++;
+  _currentLine++;
 
   while (true) {
     try {
@@ -106,13 +108,13 @@ async function text(message: string, initial?: string, validate?: (input: string
 }
 
 async function select<T = string>(
-  message: string, 
-  choices: readonly Choice<T>[], 
+  message: string,
+  choices: readonly Choice<T>[],
   initialIndex = 0
 ): Promise<T> {
-  const rl = createInterface({ 
-    input: process.stdin, 
-    output: process.stdout 
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
   });
 
   let selectedIndex = initialIndex;
@@ -123,7 +125,7 @@ async function select<T = string>(
 
   // Position cursor and render initial menu
   console.log(chalk.cyan('? ') + message);
-  currentLine++;
+  _currentLine++;
 
   const renderChoices = () => {
     process.stdout.write('\x1B[0G'); // Reset to the start of the line
@@ -142,7 +144,7 @@ async function select<T = string>(
 
   try {
     const result = await new Promise<T>((resolve) => {
-      const handleKeypress = (str: string, key: { name: string }) => {
+      const handleKeypress = (_str: string, key: { name: string }) => {
         if (key.name === 'up' && selectedIndex > 0) {
           selectedIndex--;
         } else if (key.name === 'down' && selectedIndex < maxIndex) {
@@ -197,16 +199,16 @@ function updatePreviousLine(step: StepConfig, answer: any) {
   clearLines(1);
   const checkmark = chalk.green('✓');
   let displayValue = answer;
-  
+
   // Format display value based on step type
   if (step.type === 'select') {
     const selectStep = step as SelectStep;
-    const choice = selectStep.choices.find(c => c.value === answer);
+    const choice = selectStep.choices.find((c) => c.value === answer);
     displayValue = choice?.title || answer;
   } else if (step.type === 'confirm') {
     displayValue = answer ? 'Yes' : 'No';
   }
-  
+
   console.log(`${checkmark} ${step.message} ${chalk.cyan(displayValue)}`);
 }
 
@@ -220,11 +222,11 @@ async function processStep(step: StepConfig, prevAnswer?: any): Promise<any> {
   }
 
   const stepType = typeof step.type === 'function' ? step.type(prevAnswer) : step.type;
-  
+
   if (!stepType) return null;
 
   let answer: any;
-  
+
   switch (stepType) {
     case 'text': {
       const textStep = step as { type: 'text'; initial?: string };
@@ -233,7 +235,7 @@ async function processStep(step: StepConfig, prevAnswer?: any): Promise<any> {
       return answer;
     }
     case 'select': {
-      const selectStep = step as (SelectStep | { type: Function; choices: readonly Choice[] });
+      const selectStep = step as SelectStep | { type: Function; choices: readonly Choice[] };
       if (!selectStep.choices) throw new Error('Choices required for select step');
       answer = await select(step.message, selectStep.choices);
       updatePreviousLine(step, answer);
@@ -258,7 +260,7 @@ async function promptSteps(config: CommandConfig) {
 
   // Clear screen and reset cursor position
   process.stdout.write('\x1B[2J\x1B[0f');
-  currentLine = 0;
+  _currentLine = 0;
 
   // Display banner if exists
   if (config.banner) {
@@ -268,7 +270,7 @@ async function promptSteps(config: CommandConfig) {
     }
 
     const bannerHeight = config.banner.render().split('\n').length;
-    currentLine = bannerHeight + (config.banner.text ? 2 : 1);
+    _currentLine = bannerHeight + (config.banner.text ? 2 : 1);
   }
 
   try {
@@ -312,18 +314,16 @@ function createCommand(program: Command, commandName: string, config: CommandCon
   command.argument('[name]', 'Project name');
 
   // Add remaining options
-  config.steps.forEach(step => {
-    if (step.name !== 'name') { // Skip name since it's now an argument
+  config.steps.forEach((step) => {
+    if (step.name !== 'name') {
+      // Skip name since it's now an argument
       if (typeof step.type === 'function') {
-        command.option(
-          `--${step.name} <${step.name}>`,
-          step.description || step.message
-        );
+        command.option(`--${step.name} <${step.name}>`, step.description || step.message);
       } else {
         command.option(
           `--${step.name} <${step.name}>`,
           step.description || step.message,
-          step.type === 'select' ? step.choices?.map(c => c.value) : undefined
+          step.type === 'select' ? step.choices?.map((c) => c.value) : undefined
         );
       }
     }
@@ -333,23 +333,23 @@ function createCommand(program: Command, commandName: string, config: CommandCon
     // Combine argument and options
     const combinedOptions = {
       ...options,
-      name: name || options.name // Prefer argument over option
+      name: name || options.name, // Prefer argument over option
     };
-    
+
     const answers = await promptSteps({
       ...config,
-      steps: config.steps.map(step => ({
+      steps: config.steps.map((step) => ({
         ...step,
-        initial: combinedOptions[step.name] || step.initial
-      }))
+        initial: combinedOptions[step.name] || step.initial,
+      })),
     });
 
     try {
       const handler = await loadCommand(commandName);
-      await handler[commandName]({ 
+      await handler[commandName]({
         ...combinedOptions,
         ...answers,
-        defaults: false
+        defaults: false,
       });
     } catch (error) {
       console.error(`Failed to run command handler for ${commandName}:`, error);
@@ -363,23 +363,15 @@ function createCommand(program: Command, commandName: string, config: CommandCon
 async function createCLI(config: CLIConfig) {
   const program = new Command();
 
-  program
-    .name(config.name)
-    .version(config.version);
+  program.name(config.name).version(config.version);
 
   Object.entries(config.commands).forEach(([name, cmdConfig]) => {
     createCommand(program, name, cmdConfig);
   });
 
   return {
-    run: () => program.parseAsync()
+    run: () => program.parseAsync(),
   };
 }
 
-export {
-  createCLI,
-  type CLIConfig,
-  type CommandConfig,
-  type StepConfig,
-  type Choice
-};
+export { createCLI, type CLIConfig, type CommandConfig, type StepConfig, type Choice };

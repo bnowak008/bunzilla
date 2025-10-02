@@ -1,4 +1,4 @@
-import { Context } from 'hono';
+import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { jwtVerify } from 'jose';
 import { env } from '../config/env';
@@ -14,7 +14,7 @@ export async function authMiddleware(c: Context, next: () => Promise<void>) {
     c.set('user', payload);
 
     await next();
-  } catch (error) {
+  } catch (_error) {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 }

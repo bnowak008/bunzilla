@@ -1,0 +1,117 @@
+version: 2
+updates:
+  # Main package dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      development-dependencies:
+        patterns:
+          - "@biomejs/*"
+          - "@types/*"
+          - "typescript"
+          - "vitest"
+          - "bun-types"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Template: utility
+  - package-ecosystem: "npm"
+    directory: "/src/templates/utility"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: webapp-react
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp-react"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: webapp-solid
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp-solid"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: webapp-svelte
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp-svelte"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: webapp-astro
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp-astro"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: webapp-ts
+  - package-ecosystem: "npm"
+    directory: "/src/templates/webapp-ts"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: api-hono
+  - package-ecosystem: "npm"
+    directory: "/src/templates/api-hono"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: api-fastify
+  - package-ecosystem: "npm"
+    directory: "/src/templates/api-fastify"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: api-express
+  - package-ecosystem: "npm"
+    directory: "/src/templates/api-express"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: cli
+  - package-ecosystem: "npm"
+    directory: "/src/templates/cli"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: monorepo root
+  - package-ecosystem: "npm"
+    directory: "/src/templates/monorepo"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: monorepo/apps/web
+  - package-ecosystem: "npm"
+    directory: "/src/templates/monorepo/apps/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: monorepo/apps/api
+  - package-ecosystem: "npm"
+    directory: "/src/templates/monorepo/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Template: monorepo/packages/shared
+  - package-ecosystem: "npm"
+    directory: "/src/templates/monorepo/packages/shared"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

@@ -1,5 +1,5 @@
-import { join } from 'node:path';
 import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
 import { processTemplate } from '../../utils/template-manager.js';
@@ -30,7 +30,7 @@ export async function evolve(options: EvolveOptions): Promise<void> {
     }
 
     spinner.succeed(chalk.green('Project evolved successfully'));
-    
+
     console.log('\nNext steps:');
     console.log(chalk.cyan('  bun install'));
     console.log(chalk.cyan('  bun run build'));
@@ -38,4 +38,4 @@ export async function evolve(options: EvolveOptions): Promise<void> {
     spinner.fail(chalk.red('Failed to evolve project'));
     throw error;
   }
-} 
+}

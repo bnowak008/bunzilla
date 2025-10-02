@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { API_VERSION } from '@${projectName}/shared';
+import { API_VERSION } from "@${projectName}/shared";
+import { useState } from "react";
 
 function App() {
   const [count, setCount] = useState(0);

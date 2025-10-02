@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { existsSync } from 'node:fs';
-import { readFile, rm, writeFile } from 'node:fs/promises';
-import inquirer from 'inquirer';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { config } from '../../src/commands/config';
-import { createTempDir, cleanupTempDir } from '../utils/test-helpers';
+import { cleanupTempDir, createTempDir } from '../utils/test-helpers';
 
 vi.mock('inquirer', () => ({
   default: {
@@ -29,7 +27,7 @@ describe('Config Command', () => {
 
     // Set up mock config directory
     configDir = join(tempDir, '.bunzilla');
-    const { homedir } = await import('os');
+    const { homedir } = await import('node:os');
     vi.mocked(homedir).mockReturnValue(tempDir);
   });
 
@@ -126,4 +124,4 @@ describe('Config Command', () => {
 
     expect(result).toBe('utility');
   });
-}); 
+});

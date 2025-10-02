@@ -16,5 +16,5 @@ export const logger = {
     if (process.env.DEBUG) {
       console.log(chalk.gray('🐛'), message, ...args);
     }
-  }
-}; 
+  },
+};

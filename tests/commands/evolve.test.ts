@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { evolve } from '../../src/commands/evolve';
-import { createTempDir, cleanupTempDir } from '../utils/test-helpers';
+import { cleanupTempDir, createTempDir } from '../utils/test-helpers';
 
 describe('Evolve Command', () => {
   let tempDir: string;
@@ -30,4 +30,4 @@ describe('Evolve Command', () => {
 
     expect(existsSync(join(tempDir, 'test-project', 'src/routes'))).toBe(true);
   });
-}); 
+});

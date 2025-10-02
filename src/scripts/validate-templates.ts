@@ -1,11 +1,11 @@
-import { join } from "path";
-import chalk from "chalk";
+import { join } from 'node:path';
+import chalk from 'chalk';
 
-const templatesPath = join(process.cwd(), "src", "templates");
-const templates = ["api", "cli", "monorepo", "utility", "webapp"];
+const _templatesPath = join(process.cwd(), 'src', 'templates');
+const templates = ['api', 'cli', 'monorepo', 'utility', 'webapp'];
 
 // Single spinner character for now
-const spinner = chalk.cyan("◐");
+const _spinner = chalk.cyan('◐');
 let spinnerInterval: Timer;
 
 // Track cursor position for each cell
@@ -13,7 +13,7 @@ const CELL_POSITIONS = {
   install: 19,
   build: 32,
   test: 45,
-  typecheck: 58
+  typecheck: 58,
 };
 
 function updateCell(row: number, position: number, content: string): void {
@@ -24,7 +24,7 @@ function updateCell(row: number, position: number, content: string): void {
 }
 
 // Update spinner animation frames
-const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴"].map(f => chalk.cyan(f));
+const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴'].map((f) => chalk.cyan(f));
 let frameIndex = 0;
 
 function startSpinners(): void {
@@ -32,7 +32,7 @@ function startSpinners(): void {
     frameIndex = (frameIndex + 1) % frames.length;
     // Update each cell with current frame
     templates.forEach((_, rowIndex) => {
-      Object.values(CELL_POSITIONS).forEach(position => {
+      Object.values(CELL_POSITIONS).forEach((position) => {
         updateCell(rowIndex, position, frames[frameIndex]);
       });
     });
@@ -46,34 +46,34 @@ function stopSpinners(): void {
 }
 
 function createRow(template: string, cells: string[]): string {
-  return `   │ ${template.padEnd(8)} │ ${cells.map(c => c.padEnd(8)).join(" │ ")} │`;
+  return `   │ ${template.padEnd(8)} │ ${cells.map((c) => c.padEnd(8)).join(' │ ')} │`;
 }
 
 function printTable(): void {
-  console.log(chalk.blue("\nValidation Progress\n"));
-  
+  console.log(chalk.blue('\nValidation Progress\n'));
+
   // Header
-  console.log("   ┌──────────┬──────────┬──────────┬──────────┬──────────┐");
-  console.log("   │ Template │ Install  │  Build   │   Test   │ TypeCheck│");
-  console.log("   ├──────────┼──────────┼──────────┼──────────┼──────────┤");
-  
+  console.log('   ┌──────────┬──────────┬──────────┬──────────┬──────────┐');
+  console.log('   │ Template │ Install  │  Build   │   Test   │ TypeCheck│');
+  console.log('   ├──────────┼──────────┼──────────┼──────────┼──────────┤');
+
   // Content
-  templates.forEach(template => {
-    console.log(createRow(template, ["·", "·", "·", "·"]));
+  templates.forEach((template) => {
+    console.log(createRow(template, ['·', '·', '·', '·']));
   });
-  
+
   // Footer
-  console.log("   └──────────┴──────────┴──────────┴──────────┴──────────┘");
+  console.log('   └──────────┴──────────┴──────────┴──────────┴──────────┘');
 }
 
 // Update main to use spinners
 function main() {
   // Hide cursor
   process.stdout.write('\x1b[?25l');
-  
+
   printTable();
   startSpinners();
-  
+
   // Show cursor on exit
   process.on('SIGINT', () => {
     stopSpinners();

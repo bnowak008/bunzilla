@@ -14,4 +14,4 @@ export class BunzillaError extends Error {
     super(message);
     this.name = 'BunzillaError';
   }
-} 
+}

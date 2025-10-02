@@ -10,10 +10,10 @@ export type Config = {
   defaultFramework: string;
   defaultFrontend: string;
   [key: string]: string;
-}
+};
 
 export const DEFAULT_CONFIG: Config = {
   defaultTemplate: 'utility',
   defaultFramework: 'hono',
   defaultFrontend: 'react',
-}; 
+};

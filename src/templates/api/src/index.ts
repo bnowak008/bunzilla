@@ -1,15 +1,14 @@
 import { serve } from '@hono/node-server';
-import { Hono } from 'hono';
+import { swaggerUI } from '@hono/swagger-ui';
+import { OpenAPIHono } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
-import { swaggerUI } from '@hono/swagger-ui';
-import { OpenAPIHono } from '@hono/zod-openapi';
 import { env } from './config/env';
 import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error';
-import { userRoutes } from './routes/users';
 import { authRoutes } from './routes/auth';
+import { userRoutes } from './routes/users';
 
 const app = new OpenAPIHono();
 const api = new OpenAPIHono();

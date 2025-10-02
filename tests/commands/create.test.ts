@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { readFile, mkdir } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import inquirer from 'inquirer';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { create } from '../../src/commands/create';
-import { createTempDir, cleanupTempDir, mockProcessExit } from '../utils/test-helpers';
+import { cleanupTempDir, createTempDir, mockProcessExit } from '../utils/test-helpers';
 
 vi.mock('inquirer', () => ({
   default: {
@@ -106,11 +106,13 @@ describe('Create Command', () => {
 
     const mockExit = mockProcessExit();
 
-    await expect(create({
-      name: projectName,
-      type: 'utility',
-      defaults: true,
-    })).rejects.toThrow();
+    await expect(
+      create({
+        name: projectName,
+        type: 'utility',
+        defaults: true,
+      })
+    ).rejects.toThrow();
     expect(mockExit).toHaveBeenCalledWith(1);
   });
 
@@ -130,4 +132,4 @@ describe('Create Command', () => {
     const projectDir = join(tempDir, projectName);
     expect(existsSync(projectDir)).toBe(true);
   });
-}); 
+});

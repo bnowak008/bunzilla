@@ -47,12 +47,7 @@ export async function list() {
     {
       name: 'cli',
       description: 'A command-line interface tool setup',
-      features: [
-        'Command structure',
-        'Interactive prompts',
-        'Colorful output',
-        'Error handling',
-      ],
+      features: ['Command structure', 'Interactive prompts', 'Colorful output', 'Error handling'],
     },
   ];
 
@@ -67,6 +62,8 @@ export async function list() {
   });
 
   console.log(chalk.bold('\nUsage:\n'));
-  console.log(`  ${chalk.cyan('bunzilla create')} ${chalk.dim('[type]')} ${chalk.dim('[options]')}`);
+  console.log(
+    `  ${chalk.cyan('bunzilla create')} ${chalk.dim('[type]')} ${chalk.dim('[options]')}`
+  );
   console.log(`  ${chalk.cyan('bunzilla create utility')} ${chalk.dim('--name my-package')}\n`);
-} 
+}

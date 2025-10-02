@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import ora from 'ora';
-import { ConfigOptions } from './types';
+import type { ConfigOptions } from './types';
 import { getConfig } from './utils';
 
 export * from './types';
@@ -38,4 +38,4 @@ export async function config(options: ConfigOptions): Promise<any> {
   }
 }
 
-export const getConfigManager = getConfig; 
+export const getConfigManager = getConfig;

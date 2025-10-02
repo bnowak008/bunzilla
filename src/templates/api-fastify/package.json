@@ -12,16 +12,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "fastify": "^4.25.2",
-    "@fastify/swagger": "^8.12.1",
-    "@fastify/swagger-ui": "^2.0.1",
-    "drizzle-orm": "^0.29.3",
-    "zod": "^3.22.4"
+    "fastify": "^5.3.0",
+    "@fastify/swagger": "^9.5.1",
+    "@fastify/swagger-ui": "^6.0.0",
+    "drizzle-orm": "^0.39.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
-    "@biomejs/biome": "1.4.1",
+    "typescript": "^5.9.3",
+    "@biomejs/biome": "^2.2.4",
     "bun-types": "latest",
-    "drizzle-kit": "^0.20.13"
+    "drizzle-kit": "^0.31.1"
   }
-} 
+}

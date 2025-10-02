@@ -1,14 +1,14 @@
 import { join } from 'node:path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { 
+import type { CreateOptions } from '../../types';
+import {
+  BunzillaError,
   createOptionsSchema,
+  ErrorCode,
   logger,
   processTemplate,
-  ErrorCode,
-  BunzillaError 
 } from '../../utils/index';
-import type { CreateOptions } from '../../types';
 
 export async function create(options: CreateOptions): Promise<void> {
   try {
@@ -16,10 +16,7 @@ export async function create(options: CreateOptions): Promise<void> {
     const { name, type } = validatedOptions;
 
     if (!name || !type) {
-      throw new BunzillaError(
-        ErrorCode.INVALID_OPTIONS,
-        'Project name and type are required'
-      );
+      throw new BunzillaError(ErrorCode.INVALID_OPTIONS, 'Project name and type are required');
     }
 
     const spinner = ora('Creating your project...').start();
@@ -39,20 +36,18 @@ export async function create(options: CreateOptions): Promise<void> {
           break;
         }
         case 'api': {
-          const templatePath = options.framework 
-            ? `api-${options.framework}`
-            : 'api';
+          const templatePath = options.framework ? `api-${options.framework}` : 'api';
           await processTemplate(templatePath, name);
           break;
         }
         case 'monorepo': {
           // Create base monorepo structure
           await processTemplate('monorepo', name);
-          
+
           // Set default frameworks if not explicitly chosen
           const frontend = options.frontend || 'react';
           const framework = options.framework || 'hono';
-          
+
           // Process selected packages
           if (options.packages === 'all') {
             await processTemplate(`webapp-${frontend}`, join(process.cwd(), name, 'apps/web'));
@@ -73,7 +68,7 @@ export async function create(options: CreateOptions): Promise<void> {
       spinner.succeed(chalk.green(`Successfully created ${chalk.bold(name)}`));
 
       // Show project creation success message
-      console.log('\n' + chalk.bgGreen.black(' SUCCESS ') + ' Project created successfully! 🎉\n');
+      console.log(`\n${chalk.bgGreen.black(' SUCCESS ')} Project created successfully! 🎉\n`);
 
       // Show project info
       console.log(chalk.cyan('📁 Project location:'));
@@ -82,7 +77,9 @@ export async function create(options: CreateOptions): Promise<void> {
       // Show available scripts
       console.log(chalk.cyan('🔧 Available scripts:'));
       console.log(`   ${chalk.yellow('bun install')}         ${chalk.dim('Install dependencies')}`);
-      console.log(`   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start development server')}`);
+      console.log(
+        `   ${chalk.yellow('bun run dev')}         ${chalk.dim('Start development server')}`
+      );
       console.log(`   ${chalk.yellow('bun run build')}       ${chalk.dim('Build for production')}`);
     } catch (error) {
       spinner.fail(chalk.red('Failed to create project'));
